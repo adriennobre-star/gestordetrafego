@@ -100,10 +100,6 @@
         gap: 15px;
     }
 
-    .grid.cols-4 {
-        grid-template-columns: repeat(4, 1fr);
-    }
-
     .field {
         display: flex;
         flex-direction: column;
@@ -136,40 +132,6 @@
     input:focus,
     select:focus {
         border-color: #6d28d9;
-    }
-
-    .field-note {
-        font-size: 11px;
-        color: #94a3b8;
-        margin-top: 5px;
-    }
-
-    .advanced {
-        border: 1px dashed #d1d5db;
-        border-radius: 10px;
-        padding: 5px 18px 18px;
-        margin-top: 8px;
-    }
-
-    .advanced summary {
-        cursor: pointer;
-        padding: 14px 0;
-        font-weight: bold;
-        font-size: 14px;
-        color: #4b0fd6;
-        list-style: none;
-    }
-
-    .advanced summary::-webkit-details-marker {
-        display: none;
-    }
-
-    .advanced summary:before {
-        content: "▸ ";
-    }
-
-    .advanced[open] summary:before {
-        content: "▾ ";
     }
 
     .disclaimer {
@@ -457,7 +419,7 @@
 
     @media(max-width: 900px) {
 
-        .grid, .grid.cols-4 {
+        .grid {
             grid-template-columns: repeat(2, 1fr);
         }
 
@@ -476,7 +438,7 @@
             padding: 20px;
         }
 
-        .grid, .grid.cols-4 {
+        .grid {
             grid-template-columns: 1fr;
         }
 
@@ -601,6 +563,15 @@
                 <input id="validade" type="date">
             </div>
 
+            <div class="field">
+                <label>Ciclo de contrato</label>
+                <select id="ciclo">
+                    <option value="mensal">Mensal (sem fidelidade)</option>
+                    <option value="anual" selected>Anual (12 meses)</option>
+                    <option value="bienal">Bienal (24 meses)</option>
+                </select>
+            </div>
+
         </div>
 
 
@@ -638,11 +609,6 @@
             <div class="field">
                 <label>Leads gerados por mês</label>
                 <input id="leads" type="number" min="0" value="300">
-            </div>
-
-            <div class="field">
-                <label>Contatos ativos na base <span class="opt">(usado para dimensionar o plano)</span></label>
-                <input id="contatosAtivos" type="number" min="0" value="8000">
             </div>
 
             <div class="field">
@@ -734,139 +700,6 @@
             </div>
 
         </div>
-
-
-        <div class="section-title">Condições comerciais</div>
-
-        <div class="grid">
-
-            <div class="field">
-                <label>Ciclo de contrato</label>
-                <select id="ciclo">
-                    <option value="mensal">Mensal (sem fidelidade)</option>
-                    <option value="anual" selected>Anual (12 meses)</option>
-                    <option value="bienal">Bienal (24 meses)</option>
-                </select>
-            </div>
-
-            <div class="field">
-                <label>Desconto comercial adicional (%)</label>
-                <input id="descontoAdicional" type="number" min="0" max="100" value="0">
-            </div>
-
-            <div class="field">
-                <label>Incluir taxa de implementação?</label>
-                <select id="incluirImplementacao">
-                    <option value="sim">Sim</option>
-                    <option value="nao">Não</option>
-                </select>
-            </div>
-
-        </div>
-
-
-        <details class="advanced">
-            <summary>Tabela de preços (editável)</summary>
-
-            <p class="disclaimer">
-                Os valores abaixo são de referência para simulação. Ajuste-os conforme a
-                tabela comercial vigente antes de enviar a proposta ao cliente.
-            </p>
-
-            <div class="section-title">RD Station Marketing <span class="section-hint">(mensal, por faixa de contatos ativos)</span></div>
-
-            <div class="grid cols-4">
-
-                <div class="field">
-                    <label>Light <span class="opt">(até 3.000)</span></label>
-                    <input id="precoMktLight" type="number" min="0" value="269">
-                </div>
-
-                <div class="field">
-                    <label>Basic <span class="opt">(até 10.000)</span></label>
-                    <input id="precoMktBasic" type="number" min="0" value="509">
-                </div>
-
-                <div class="field">
-                    <label>Pro <span class="opt">(até 30.000)</span></label>
-                    <input id="precoMktPro" type="number" min="0" value="1109">
-                </div>
-
-                <div class="field">
-                    <label>Enterprise <span class="opt">(acima de 30.000)</span></label>
-                    <input id="precoMktEnterprise" type="number" min="0" value="2109">
-                </div>
-
-            </div>
-
-            <div class="section-title">RD Station CRM <span class="section-hint">(mensal, por usuário/vendedor)</span></div>
-
-            <div class="grid cols-4">
-
-                <div class="field">
-                    <label>Basic <span class="opt">(até 3 usuários)</span></label>
-                    <input id="precoCrmBasic" type="number" min="0" value="49">
-                </div>
-
-                <div class="field">
-                    <label>Pro <span class="opt">(até 10 usuários)</span></label>
-                    <input id="precoCrmPro" type="number" min="0" value="79">
-                </div>
-
-                <div class="field">
-                    <label>Plus <span class="opt">(acima de 10 usuários)</span></label>
-                    <input id="precoCrmPlus" type="number" min="0" value="129">
-                </div>
-
-                <div class="field">
-                    <label>Nº mínimo de usuários cobrados</label>
-                    <input id="crmMinUsuarios" type="number" min="1" value="1">
-                </div>
-
-            </div>
-
-            <div class="section-title">RD Station Conversas <span class="section-hint">(mensal, por atendente)</span></div>
-
-            <div class="grid cols-4">
-
-                <div class="field">
-                    <label>Valor por atendente</label>
-                    <input id="precoConversas" type="number" min="0" value="179">
-                </div>
-
-                <div class="field">
-                    <label>Nº mínimo de atendentes cobrados</label>
-                    <input id="conversasMinAtendentes" type="number" min="1" value="1">
-                </div>
-
-                <div class="field">
-                    <label>Taxa de implementação (única)</label>
-                    <input id="taxaImplementacao" type="number" min="0" value="1500">
-                </div>
-
-                <div class="field">
-                    <label></label>
-                </div>
-
-            </div>
-
-            <div class="section-title">Descontos por ciclo de contrato <span class="section-hint">(% sobre o valor mensal)</span></div>
-
-            <div class="grid cols-4">
-
-                <div class="field">
-                    <label>Desconto plano anual (%)</label>
-                    <input id="descontoAnual" type="number" min="0" max="100" value="10">
-                </div>
-
-                <div class="field">
-                    <label>Desconto plano bienal (%)</label>
-                    <input id="descontoBienal" type="number" min="0" max="100" value="18">
-                </div>
-
-            </div>
-
-        </details>
 
 
         <div class="button-area">
@@ -1018,8 +851,8 @@
             <div class="totals" id="propostaTotais"></div>
 
             <p class="disclaimer">
-                Valores estimados a partir da tabela de preços informada no formulário
-                (editável em "Tabela de preços"). Sujeitos à confirmação comercial.
+                Plano, quantidade e valor de cada produto são sugeridos automaticamente
+                a partir dos dados informados. Estimativa sujeita à confirmação comercial.
             </p>
 
         </div>
@@ -1094,38 +927,56 @@ function formatDataBR(date) {
 ==================================================
 MOTOR DE PRECIFICAÇÃO
 ==================================================
+Tabela de referência mantida fixa no código (não editável na tela) para
+que a calculadora sempre sugira sozinha o plano e a quantidade de cada
+produto a partir dos dados do cliente. Para atualizar valores comerciais,
+ajuste esta constante diretamente no arquivo.
 */
 
-function planoMarketing(contatosAtivos, precos) {
+const PRECOS = {
+    marketing: { light: 269, basic: 509, pro: 1109, enterprise: 2109 },
+    crm: { basic: 49, pro: 79, plus: 129 },
+    conversas: 179,
+    taxaImplementacao: 1500,
+    descontoPorCiclo: { mensal: 0, anual: 10, bienal: 18 }
+};
+
+// Estima o tamanho da base de contatos ativos a partir dos leads/mês
+// informados (acúmulo aproximado de 12 meses de geração de leads).
+function estimarContatosAtivos(leadsPorMes) {
+    return Math.round(Math.max(leadsPorMes, 1) * 12);
+}
+
+function planoMarketing(contatosAtivos) {
 
     if (contatosAtivos <= 3000) {
-        return { nome: "RD Station Marketing — Light", preco: precos.light };
+        return { nome: "RD Station Marketing — Light", preco: PRECOS.marketing.light };
     }
 
     if (contatosAtivos <= 10000) {
-        return { nome: "RD Station Marketing — Basic", preco: precos.basic };
+        return { nome: "RD Station Marketing — Basic", preco: PRECOS.marketing.basic };
     }
 
     if (contatosAtivos <= 30000) {
-        return { nome: "RD Station Marketing — Pro", preco: precos.pro };
+        return { nome: "RD Station Marketing — Pro", preco: PRECOS.marketing.pro };
     }
 
-    return { nome: "RD Station Marketing — Enterprise", preco: precos.enterprise };
+    return { nome: "RD Station Marketing — Enterprise", preco: PRECOS.marketing.enterprise };
 }
 
-function planoCRM(vendedores, precos, minUsuarios) {
+function planoCRM(vendedores) {
 
-    const usuarios = Math.max(vendedores, minUsuarios, 1);
+    const usuarios = Math.max(vendedores, 1);
 
     let nome = "RD Station CRM — Basic";
-    let precoUnitario = precos.basic;
+    let precoUnitario = PRECOS.crm.basic;
 
     if (usuarios > 10) {
         nome = "RD Station CRM — Plus";
-        precoUnitario = precos.plus;
+        precoUnitario = PRECOS.crm.plus;
     } else if (usuarios > 3) {
         nome = "RD Station CRM — Pro";
-        precoUnitario = precos.pro;
+        precoUnitario = PRECOS.crm.pro;
     }
 
     return {
@@ -1135,15 +986,15 @@ function planoCRM(vendedores, precos, minUsuarios) {
     };
 }
 
-function planoConversas(atendentes, whatsapp, precoUnitario, minAtendentes) {
+function planoConversas(atendentes, whatsapp) {
 
-    const seats = Math.max(atendentes, minAtendentes, 1);
+    const seats = Math.max(atendentes, 1);
     const nivel = whatsapp > 3000 ? "Pro" : "Starter";
 
     return {
         nome: "RD Station Conversas — " + nivel,
         atendentes: seats,
-        preco: precoUnitario * seats
+        preco: PRECOS.conversas * seats
     };
 }
 
@@ -1159,7 +1010,7 @@ function gerarDiagnostico() {
     const anuncios = valor("anuncios");
     const midia = valor("midia");
     const leads = valor("leads");
-    const contatosAtivos = valor("contatosAtivos");
+    const contatosAtivos = estimarContatosAtivos(leads);
     const campanhas = valor("campanhas");
     const whatsapp = valor("whatsapp");
     const atendentes = valor("atendentes");
@@ -1175,28 +1026,6 @@ function gerarDiagnostico() {
     const possuiEcommerce = texto("ecommerce") === "sim";
 
     const ciclo = texto("ciclo");
-    const descontoAdicional = valor("descontoAdicional");
-    const incluirImplementacao = texto("incluirImplementacao") === "sim";
-
-    const precosMkt = {
-        light: valor("precoMktLight"),
-        basic: valor("precoMktBasic"),
-        pro: valor("precoMktPro"),
-        enterprise: valor("precoMktEnterprise")
-    };
-
-    const precosCrm = {
-        basic: valor("precoCrmBasic"),
-        pro: valor("precoCrmPro"),
-        plus: valor("precoCrmPlus")
-    };
-
-    const crmMinUsuarios = valor("crmMinUsuarios");
-    const precoConversasUnitario = valor("precoConversas");
-    const conversasMinAtendentes = valor("conversasMinAtendentes");
-    const taxaImplementacao = valor("taxaImplementacao");
-    const descontoAnual = valor("descontoAnual");
-    const descontoBienal = valor("descontoBienal");
 
 
     /*
@@ -1445,17 +1274,18 @@ function gerarDiagnostico() {
     const itensProposta = [];
 
     if (incluirMarketing) {
-        const plano = planoMarketing(contatosAtivos, precosMkt);
+        const plano = planoMarketing(contatosAtivos);
         itensProposta.push({
             tag: "MARKETING",
             nome: plano.nome,
-            base: contatosAtivos.toLocaleString("pt-BR") + " contatos ativos na base",
+            base: "~" + contatosAtivos.toLocaleString("pt-BR") + " contatos ativos estimados (" +
+                leads.toLocaleString("pt-BR") + " leads/mês × 12 meses)",
             preco: plano.preco
         });
     }
 
     if (incluirCRM) {
-        const plano = planoCRM(vendedores, precosCrm, crmMinUsuarios);
+        const plano = planoCRM(vendedores);
         itensProposta.push({
             tag: "VENDAS",
             nome: plano.nome,
@@ -1465,7 +1295,7 @@ function gerarDiagnostico() {
     }
 
     if (incluirConversas) {
-        const plano = planoConversas(atendentes, whatsapp, precoConversasUnitario, conversasMinAtendentes);
+        const plano = planoConversas(atendentes, whatsapp);
         itensProposta.push({
             tag: "ATENDIMENTO",
             nome: plano.nome,
@@ -1501,26 +1331,15 @@ function gerarDiagnostico() {
 
         const subtotal = itensProposta.reduce((soma, item) => soma + item.preco, 0);
 
-        let percentualDesconto = descontoAdicional;
-        let meses = 1;
-        let cicloLabel = "Mensal (sem fidelidade)";
-
-        if (ciclo === "anual") {
-            percentualDesconto += descontoAnual;
-            meses = 12;
-            cicloLabel = "Anual (12 meses)";
-        } else if (ciclo === "bienal") {
-            percentualDesconto += descontoBienal;
-            meses = 24;
-            cicloLabel = "Bienal (24 meses)";
-        }
-
-        percentualDesconto = Math.min(100, percentualDesconto);
+        const meses = ciclo === "anual" ? 12 : ciclo === "bienal" ? 24 : 1;
+        const cicloLabel = ciclo === "anual"
+            ? "Anual (12 meses)"
+            : ciclo === "bienal" ? "Bienal (24 meses)" : "Mensal (sem fidelidade)";
+        const percentualDesconto = PRECOS.descontoPorCiclo[ciclo] || 0;
 
         const valorDesconto = subtotal * (percentualDesconto / 100);
         const totalMensal = subtotal - valorDesconto;
-        const taxaAplicada = incluirImplementacao ? taxaImplementacao : 0;
-        const totalContrato = (totalMensal * meses) + taxaAplicada;
+        const totalContrato = (totalMensal * meses) + PRECOS.taxaImplementacao;
 
         totaisEl.innerHTML = `
             <div class="totals-row">
@@ -1528,12 +1347,12 @@ function gerarDiagnostico() {
                 <span>${formatBRL(subtotal)}</span>
             </div>
             <div class="totals-row">
-                <span>Desconto (${cicloLabel}${descontoAdicional > 0 ? " + comercial" : ""} — ${percentualDesconto.toFixed(1)}%)</span>
+                <span>Desconto (${cicloLabel} — ${percentualDesconto.toFixed(1)}%)</span>
                 <span>- ${formatBRL(valorDesconto)}</span>
             </div>
             <div class="totals-row">
                 <span>Taxa de implementação (única)</span>
-                <span>${incluirImplementacao ? formatBRL(taxaAplicada) : "Não incluída"}</span>
+                <span>${formatBRL(PRECOS.taxaImplementacao)}</span>
             </div>
             <div class="totals-row grand">
                 <span>Total mensal</span>
@@ -1585,7 +1404,8 @@ function gerarDiagnostico() {
             <strong>Marketing e Geração de Demanda (RD Station Marketing)</strong>
             Estruturação de jornadas de relacionamento, automações e campanhas
             considerando aproximadamente ${trafego.toLocaleString("pt-BR")} acessos
-            mensais e ${contatosAtivos.toLocaleString("pt-BR")} contatos ativos na base.
+            mensais e uma base estimada de ${contatosAtivos.toLocaleString("pt-BR")}
+            contatos ativos.
         </div>`;
     }
 
