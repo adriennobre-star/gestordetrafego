@@ -1,0 +1,1673 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RD Station | Calculadora de Proposta</title>
+
+<style>
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    body {
+        font-family: 'Segoe UI', Arial, Helvetica, sans-serif;
+        background: #f4f6f8;
+        color: #1a1a2e;
+    }
+
+    header {
+        background: linear-gradient(120deg, #1a0b3d 0%, #3b0e8f 55%, #4b0fd6 100%);
+        color: white;
+        padding: 28px 40px;
+    }
+
+    .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 26px;
+        font-weight: 800;
+        letter-spacing: -.5px;
+    }
+
+    .brand .rd {
+        color: #ccff00;
+    }
+
+    header p {
+        color: #d8cff5;
+        font-size: 14px;
+        margin-top: 6px;
+    }
+
+    .container {
+        max-width: 1200px;
+        margin: 30px auto;
+        padding: 0 20px;
+    }
+
+    .card {
+        background: white;
+        border-radius: 14px;
+        padding: 25px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 18px rgba(0,0,0,0.06);
+    }
+
+    .card h2 {
+        font-size: 20px;
+        margin-bottom: 20px;
+    }
+
+    .card h2 small {
+        display: block;
+        font-size: 12px;
+        font-weight: normal;
+        color: #64748b;
+        margin-top: 4px;
+    }
+
+    .section-title {
+        font-size: 14px;
+        font-weight: bold;
+        text-transform: uppercase;
+        color: #64748b;
+        margin: 25px 0 15px;
+        letter-spacing: .5px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .section-title:first-of-type {
+        margin-top: 0;
+    }
+
+    .section-hint {
+        font-weight: normal;
+        text-transform: none;
+        color: #94a3b8;
+        font-size: 12px;
+        letter-spacing: normal;
+    }
+
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+    }
+
+    .grid.cols-4 {
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    .field {
+        display: flex;
+        flex-direction: column;
+    }
+
+    label {
+        font-size: 13px;
+        font-weight: bold;
+        margin-bottom: 7px;
+        color: #374151;
+    }
+
+    label .opt {
+        font-weight: normal;
+        color: #94a3b8;
+        font-size: 11px;
+    }
+
+    input,
+    select {
+        height: 43px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        padding: 0 12px;
+        font-size: 14px;
+        outline: none;
+        background: white;
+    }
+
+    input:focus,
+    select:focus {
+        border-color: #6d28d9;
+    }
+
+    .field-note {
+        font-size: 11px;
+        color: #94a3b8;
+        margin-top: 5px;
+    }
+
+    .advanced {
+        border: 1px dashed #d1d5db;
+        border-radius: 10px;
+        padding: 5px 18px 18px;
+        margin-top: 8px;
+    }
+
+    .advanced summary {
+        cursor: pointer;
+        padding: 14px 0;
+        font-weight: bold;
+        font-size: 14px;
+        color: #4b0fd6;
+        list-style: none;
+    }
+
+    .advanced summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .advanced summary:before {
+        content: "▸ ";
+    }
+
+    .advanced[open] summary:before {
+        content: "▾ ";
+    }
+
+    .disclaimer {
+        font-size: 12px;
+        color: #94a3b8;
+        margin-top: 10px;
+        line-height: 1.5;
+    }
+
+    .button-area {
+        margin-top: 25px;
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    button {
+        border: none;
+        border-radius: 8px;
+        padding: 13px 20px;
+        font-size: 14px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .primary {
+        background: #4b0fd6;
+        color: white;
+    }
+
+    .primary:hover {
+        background: #3b0e8f;
+    }
+
+    .secondary {
+        background: #e5e7eb;
+        color: #111827;
+    }
+
+    .secondary:hover {
+        background: #d1d5db;
+    }
+
+    #resultado {
+        display: none;
+    }
+
+    .proposal-meta {
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 10px;
+        font-size: 13px;
+        color: #64748b;
+        margin-bottom: 18px;
+        border-bottom: 1px solid #e5e7eb;
+        padding-bottom: 14px;
+    }
+
+    .proposal-meta strong {
+        color: #1a1a2e;
+    }
+
+    .score {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+
+    .score-number {
+        font-size: 58px;
+        font-weight: bold;
+        color: #4b0fd6;
+    }
+
+    .score-label {
+        font-size: 15px;
+        color: #64748b;
+    }
+
+    .progress {
+        height: 14px;
+        width: 100%;
+        background: #e5e7eb;
+        border-radius: 20px;
+        overflow: hidden;
+        margin-top: 12px;
+    }
+
+    .progress-bar {
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, #4b0fd6, #ccff00);
+        transition: width .5s ease;
+    }
+
+    .metrics {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 12px;
+        margin-top: 20px;
+    }
+
+    .metric {
+        background: #f8fafc;
+        border-radius: 10px;
+        padding: 18px;
+        text-align: center;
+        border: 1px solid #e5e7eb;
+    }
+
+    .metric-value {
+        font-size: 27px;
+        font-weight: bold;
+        margin-bottom: 6px;
+        color: #4b0fd6;
+    }
+
+    .metric-name {
+        font-size: 12px;
+        color: #64748b;
+    }
+
+    .diagnostic {
+        border-left: 5px solid #4b0fd6;
+        background: #f8fafc;
+        padding: 18px;
+        border-radius: 8px;
+        margin-bottom: 12px;
+    }
+
+    .diagnostic h3 {
+        font-size: 16px;
+        margin-bottom: 7px;
+    }
+
+    .diagnostic p {
+        font-size: 14px;
+        line-height: 1.5;
+        color: #475569;
+    }
+
+    .summary {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+        margin-top: 20px;
+    }
+
+    .summary-box {
+        background: #f8fafc;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 15px;
+    }
+
+    .summary-box span {
+        display: block;
+        font-size: 11px;
+        color: #64748b;
+        margin-bottom: 5px;
+    }
+
+    .summary-box strong {
+        font-size: 19px;
+    }
+
+    /* PROPOSTA COMERCIAL */
+
+    table.proposal-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+        margin-top: 5px;
+    }
+
+    table.proposal-table th {
+        text-align: left;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: .4px;
+        color: #64748b;
+        padding: 10px 12px;
+        border-bottom: 2px solid #e5e7eb;
+    }
+
+    table.proposal-table td {
+        padding: 14px 12px;
+        border-bottom: 1px solid #eef0f4;
+        vertical-align: top;
+    }
+
+    table.proposal-table td.value {
+        text-align: right;
+        font-weight: bold;
+        white-space: nowrap;
+    }
+
+    .tag {
+        display: inline-block;
+        padding: 5px 9px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: bold;
+        background: #ede9fe;
+        color: #4b0fd6;
+    }
+
+    .product-name {
+        font-weight: bold;
+        font-size: 14.5px;
+        margin-bottom: 4px;
+    }
+
+    .product-basis {
+        font-size: 12px;
+        color: #64748b;
+    }
+
+    .totals {
+        margin-top: 18px;
+        border-top: 2px solid #1a1a2e;
+        padding-top: 15px;
+    }
+
+    .totals-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 6px 12px;
+        font-size: 14px;
+        color: #475569;
+    }
+
+    .totals-row.grand {
+        font-size: 20px;
+        font-weight: bold;
+        color: #1a1a2e;
+        border-top: 1px solid #e5e7eb;
+        margin-top: 8px;
+        padding-top: 14px;
+    }
+
+    .totals-row.grand span.value {
+        color: #4b0fd6;
+    }
+
+    .empty-note {
+        font-size: 14px;
+        color: #64748b;
+        padding: 10px 0;
+    }
+
+    .scope-box {
+        background: #1a0b3d;
+        color: white;
+        border-radius: 12px;
+        padding: 25px;
+    }
+
+    .scope-box h2 {
+        color: white;
+    }
+
+    .scope-item {
+        padding: 13px 0;
+        border-bottom: 1px solid #3b2a70;
+        font-size: 14px;
+    }
+
+    .scope-item:last-child {
+        border-bottom: none;
+    }
+
+    .scope-item strong {
+        display: block;
+        margin-bottom: 4px;
+        color: #ccff00;
+    }
+
+    .hidden {
+        display: none;
+    }
+
+    @media(max-width: 900px) {
+
+        .grid, .grid.cols-4 {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .metrics {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .summary {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media(max-width: 600px) {
+
+        header {
+            padding: 20px;
+        }
+
+        .grid, .grid.cols-4 {
+            grid-template-columns: 1fr;
+        }
+
+        .metrics {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .summary {
+            grid-template-columns: 1fr;
+        }
+
+        table.proposal-table {
+            font-size: 12.5px;
+        }
+    }
+
+    @media print {
+
+        body {
+            background: white;
+        }
+
+        header {
+            background: white;
+            color: black;
+            border-bottom: 1px solid #ddd;
+        }
+
+        header p {
+            color: #555;
+        }
+
+        .brand .rd {
+            color: #4b0fd6;
+        }
+
+        #formulario,
+        .button-area {
+            display: none;
+        }
+
+        #resultado {
+            display: block !important;
+        }
+
+        .card {
+            box-shadow: none;
+            border: 1px solid #ddd;
+        }
+
+        .scope-box {
+            background: white;
+            color: black;
+            border: 1px solid #ddd;
+        }
+
+        .scope-box h2 {
+            color: black;
+        }
+
+        .scope-item {
+            border-bottom: 1px solid #ddd;
+        }
+
+        .scope-item strong {
+            color: #4b0fd6;
+        }
+    }
+</style>
+</head>
+
+<body>
+
+<header>
+    <div class="brand"><span class="rd">RD</span> Station</div>
+    <p>Calculadora de Diagnóstico e Proposta Comercial</p>
+</header>
+
+
+<div class="container">
+
+    <!-- FORMULÁRIO -->
+
+    <div class="card" id="formulario">
+
+        <h2>Diagnóstico e dados da proposta</h2>
+
+        <div class="section-title">Informações da proposta</div>
+
+        <div class="grid">
+
+            <div class="field">
+                <label>Nome da empresa</label>
+                <input id="empresa" type="text" placeholder="Ex.: Soferro Construções">
+            </div>
+
+            <div class="field">
+                <label>Segmento</label>
+                <select id="segmento">
+                    <option value="varejo">Varejo</option>
+                    <option value="distribuicao">Distribuição</option>
+                    <option value="construcao">Construção</option>
+                    <option value="educacao">Educação</option>
+                    <option value="industria">Indústria</option>
+                    <option value="servicos">Serviços</option>
+                    <option value="logistica">Logística</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label>Número de funcionários</label>
+                <input id="funcionarios" type="number" min="0" value="50">
+            </div>
+
+            <div class="field">
+                <label>Consultor responsável</label>
+                <input id="consultor" type="text" placeholder="Nome do vendedor/consultor">
+            </div>
+
+            <div class="field">
+                <label>Validade da proposta</label>
+                <input id="validade" type="date">
+            </div>
+
+        </div>
+
+
+        <div class="section-title">Presença digital</div>
+
+        <div class="grid">
+
+            <div class="field">
+                <label>Visitas mensais no site</label>
+                <input id="trafego" type="number" min="0" value="10000">
+            </div>
+
+            <div class="field">
+                <label>Número de seguidores</label>
+                <input id="seguidores" type="number" min="0" value="10000">
+            </div>
+
+            <div class="field">
+                <label>Anúncios ativos</label>
+                <input id="anuncios" type="number" min="0" value="5">
+            </div>
+
+            <div class="field">
+                <label>Investimento mensal em mídia (R$)</label>
+                <input id="midia" type="number" min="0" value="5000">
+            </div>
+
+        </div>
+
+
+        <div class="section-title">Marketing e geração de demanda</div>
+
+        <div class="grid">
+
+            <div class="field">
+                <label>Leads gerados por mês</label>
+                <input id="leads" type="number" min="0" value="300">
+            </div>
+
+            <div class="field">
+                <label>Contatos ativos na base <span class="opt">(usado para dimensionar o plano)</span></label>
+                <input id="contatosAtivos" type="number" min="0" value="8000">
+            </div>
+
+            <div class="field">
+                <label>Campanhas por mês</label>
+                <input id="campanhas" type="number" min="0" value="5">
+            </div>
+
+            <div class="field">
+                <label>Possui automação de marketing?</label>
+                <select id="automacao">
+                    <option value="nao">Não</option>
+                    <option value="sim">Sim</option>
+                </select>
+            </div>
+
+        </div>
+
+
+        <div class="section-title">Atendimento e WhatsApp</div>
+
+        <div class="grid">
+
+            <div class="field">
+                <label>Conversas WhatsApp por mês</label>
+                <input id="whatsapp" type="number" min="0" value="2000">
+            </div>
+
+            <div class="field">
+                <label>Número de atendentes</label>
+                <input id="atendentes" type="number" min="0" value="3">
+            </div>
+
+            <div class="field">
+                <label>Possui chatbot/IA?</label>
+                <select id="ia">
+                    <option value="nao">Não</option>
+                    <option value="sim">Sim</option>
+                </select>
+            </div>
+
+        </div>
+
+
+        <div class="section-title">Estrutura comercial</div>
+
+        <div class="grid">
+
+            <div class="field">
+                <label>Número de vendedores</label>
+                <input id="vendedores" type="number" min="0" value="8">
+            </div>
+
+            <div class="field">
+                <label>Oportunidades por mês</label>
+                <input id="oportunidades" type="number" min="0" value="150">
+            </div>
+
+            <div class="field">
+                <label>Possui CRM?</label>
+                <select id="crm">
+                    <option value="nao">Não</option>
+                    <option value="sim">Sim</option>
+                </select>
+            </div>
+
+        </div>
+
+
+        <div class="section-title">E-commerce <span class="section-hint">(informativo — não compõe o valor da proposta RD Station)</span></div>
+
+        <div class="grid">
+
+            <div class="field">
+                <label>Possui loja online?</label>
+                <select id="ecommerce">
+                    <option value="nao">Não</option>
+                    <option value="sim">Sim</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label>Pedidos online/mês</label>
+                <input id="pedidos" type="number" min="0" value="0">
+            </div>
+
+            <div class="field">
+                <label>Faturamento online (R$/mês)</label>
+                <input id="faturamento" type="number" min="0" value="0">
+            </div>
+
+        </div>
+
+
+        <div class="section-title">Condições comerciais</div>
+
+        <div class="grid">
+
+            <div class="field">
+                <label>Ciclo de contrato</label>
+                <select id="ciclo">
+                    <option value="mensal">Mensal (sem fidelidade)</option>
+                    <option value="anual" selected>Anual (12 meses)</option>
+                    <option value="bienal">Bienal (24 meses)</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label>Desconto comercial adicional (%)</label>
+                <input id="descontoAdicional" type="number" min="0" max="100" value="0">
+            </div>
+
+            <div class="field">
+                <label>Incluir taxa de implementação?</label>
+                <select id="incluirImplementacao">
+                    <option value="sim">Sim</option>
+                    <option value="nao">Não</option>
+                </select>
+            </div>
+
+        </div>
+
+
+        <details class="advanced">
+            <summary>Tabela de preços (editável)</summary>
+
+            <p class="disclaimer">
+                Os valores abaixo são de referência para simulação. Ajuste-os conforme a
+                tabela comercial vigente antes de enviar a proposta ao cliente.
+            </p>
+
+            <div class="section-title">RD Station Marketing <span class="section-hint">(mensal, por faixa de contatos ativos)</span></div>
+
+            <div class="grid cols-4">
+
+                <div class="field">
+                    <label>Light <span class="opt">(até 3.000)</span></label>
+                    <input id="precoMktLight" type="number" min="0" value="269">
+                </div>
+
+                <div class="field">
+                    <label>Basic <span class="opt">(até 10.000)</span></label>
+                    <input id="precoMktBasic" type="number" min="0" value="509">
+                </div>
+
+                <div class="field">
+                    <label>Pro <span class="opt">(até 30.000)</span></label>
+                    <input id="precoMktPro" type="number" min="0" value="1109">
+                </div>
+
+                <div class="field">
+                    <label>Enterprise <span class="opt">(acima de 30.000)</span></label>
+                    <input id="precoMktEnterprise" type="number" min="0" value="2109">
+                </div>
+
+            </div>
+
+            <div class="section-title">RD Station CRM <span class="section-hint">(mensal, por usuário/vendedor)</span></div>
+
+            <div class="grid cols-4">
+
+                <div class="field">
+                    <label>Basic <span class="opt">(até 3 usuários)</span></label>
+                    <input id="precoCrmBasic" type="number" min="0" value="49">
+                </div>
+
+                <div class="field">
+                    <label>Pro <span class="opt">(até 10 usuários)</span></label>
+                    <input id="precoCrmPro" type="number" min="0" value="79">
+                </div>
+
+                <div class="field">
+                    <label>Plus <span class="opt">(acima de 10 usuários)</span></label>
+                    <input id="precoCrmPlus" type="number" min="0" value="129">
+                </div>
+
+                <div class="field">
+                    <label>Nº mínimo de usuários cobrados</label>
+                    <input id="crmMinUsuarios" type="number" min="1" value="1">
+                </div>
+
+            </div>
+
+            <div class="section-title">RD Station Conversas <span class="section-hint">(mensal, por atendente)</span></div>
+
+            <div class="grid cols-4">
+
+                <div class="field">
+                    <label>Valor por atendente</label>
+                    <input id="precoConversas" type="number" min="0" value="179">
+                </div>
+
+                <div class="field">
+                    <label>Nº mínimo de atendentes cobrados</label>
+                    <input id="conversasMinAtendentes" type="number" min="1" value="1">
+                </div>
+
+                <div class="field">
+                    <label>Taxa de implementação (única)</label>
+                    <input id="taxaImplementacao" type="number" min="0" value="1500">
+                </div>
+
+                <div class="field">
+                    <label></label>
+                </div>
+
+            </div>
+
+            <div class="section-title">Descontos por ciclo de contrato <span class="section-hint">(% sobre o valor mensal)</span></div>
+
+            <div class="grid cols-4">
+
+                <div class="field">
+                    <label>Desconto plano anual (%)</label>
+                    <input id="descontoAnual" type="number" min="0" max="100" value="10">
+                </div>
+
+                <div class="field">
+                    <label>Desconto plano bienal (%)</label>
+                    <input id="descontoBienal" type="number" min="0" max="100" value="18">
+                </div>
+
+            </div>
+
+        </details>
+
+
+        <div class="button-area">
+            <button class="primary" onclick="gerarDiagnostico()">GERAR PROPOSTA</button>
+            <button class="secondary" onclick="limparFormulario()">LIMPAR</button>
+        </div>
+
+    </div>
+
+
+    <!-- RESULTADO -->
+
+    <div id="resultado">
+
+        <div class="card">
+
+            <h2>
+                Diagnóstico Digital
+                <small>Base para o dimensionamento da proposta comercial</small>
+            </h2>
+
+            <div class="proposal-meta">
+                <div>Proposta nº <strong id="propostaId">-</strong></div>
+                <div>Empresa: <strong id="metaEmpresa">-</strong></div>
+                <div>Consultor: <strong id="metaConsultor">-</strong></div>
+                <div>Data: <strong id="metaData">-</strong></div>
+                <div>Válida até: <strong id="metaValidade">-</strong></div>
+            </div>
+
+            <div class="score">
+
+                <div>
+                    <div class="score-number" id="score">0</div>
+                    <div class="score-label">Maturidade Digital</div>
+                </div>
+
+                <div style="flex:1; min-width:250px;">
+                    <div id="nivel">-</div>
+                    <div class="progress">
+                        <div class="progress-bar" id="progressBar"></div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="metrics">
+
+                <div class="metric">
+                    <div class="metric-value" id="scoreAquisicao">0</div>
+                    <div class="metric-name">Aquisição</div>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-value" id="scoreAtendimento">0</div>
+                    <div class="metric-name">Atendimento</div>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-value" id="scoreVendas">0</div>
+                    <div class="metric-name">Vendas</div>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-value" id="scoreAutomacao">0</div>
+                    <div class="metric-name">Automação</div>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-value" id="scoreCommerce">0</div>
+                    <div class="metric-name">Commerce</div>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- RESUMO -->
+
+        <div class="card">
+
+            <h2>Resumo da operação</h2>
+
+            <div class="summary">
+
+                <div class="summary-box">
+                    <span>Empresa</span>
+                    <strong id="resEmpresa">-</strong>
+                </div>
+
+                <div class="summary-box">
+                    <span>Tráfego mensal</span>
+                    <strong id="resTrafego">-</strong>
+                </div>
+
+                <div class="summary-box">
+                    <span>Leads/mês</span>
+                    <strong id="resLeads">-</strong>
+                </div>
+
+                <div class="summary-box">
+                    <span>Conversas/mês</span>
+                    <strong id="resWhatsapp">-</strong>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- DIAGNÓSTICOS -->
+
+        <div class="card">
+
+            <h2>Principais oportunidades</h2>
+
+            <div id="diagnosticos"></div>
+
+        </div>
+
+
+        <!-- PROPOSTA COMERCIAL -->
+
+        <div class="card">
+
+            <h2>
+                Proposta Comercial RD Station
+                <small>Planos sugeridos com base no diagnóstico e volumes informados</small>
+            </h2>
+
+            <table class="proposal-table">
+
+                <thead>
+                    <tr>
+                        <th>Produto</th>
+                        <th>Base de cálculo</th>
+                        <th style="text-align:right;">Valor mensal</th>
+                    </tr>
+                </thead>
+
+                <tbody id="propostaLinhas"></tbody>
+
+            </table>
+
+            <div id="propostaVazia" class="empty-note hidden">
+                Nenhum produto RD Station foi recomendado para os volumes informados.
+            </div>
+
+            <div class="totals" id="propostaTotais"></div>
+
+            <p class="disclaimer">
+                Valores estimados a partir da tabela de preços informada no formulário
+                (editável em "Tabela de preços"). Sujeitos à confirmação comercial.
+            </p>
+
+        </div>
+
+
+        <!-- ESCOPO -->
+
+        <div class="card">
+
+            <div class="scope-box">
+
+                <h2>Escopo Projetado</h2>
+
+                <div id="escopo"></div>
+
+            </div>
+
+        </div>
+
+
+        <!-- AÇÕES -->
+
+        <div class="card">
+
+            <div class="button-area">
+                <button class="primary" onclick="window.print()">IMPRIMIR / SALVAR PDF</button>
+                <button class="secondary" onclick="voltarFormulario()">EDITAR DIAGNÓSTICO</button>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+function valor(id) {
+    return Number(document.getElementById(id).value) || 0;
+}
+
+function texto(id) {
+    return document.getElementById(id).value;
+}
+
+function percentual(valor, maximo) {
+    if (valor <= 0) {
+        return 0;
+    }
+    return Math.min(100, (valor / maximo) * 100);
+}
+
+function formatBRL(v) {
+    return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
+
+function formatDataBR(date) {
+    return date.toLocaleDateString("pt-BR");
+}
+
+// Preenche a validade padrão (hoje + 7 dias) ao carregar a página.
+(function definirValidadePadrao() {
+    const campo = document.getElementById("validade");
+    const data = new Date();
+    data.setDate(data.getDate() + 7);
+    campo.value = data.toISOString().slice(0, 10);
+})();
+
+
+/*
+==================================================
+MOTOR DE PRECIFICAÇÃO
+==================================================
+*/
+
+function planoMarketing(contatosAtivos, precos) {
+
+    if (contatosAtivos <= 3000) {
+        return { nome: "RD Station Marketing — Light", preco: precos.light };
+    }
+
+    if (contatosAtivos <= 10000) {
+        return { nome: "RD Station Marketing — Basic", preco: precos.basic };
+    }
+
+    if (contatosAtivos <= 30000) {
+        return { nome: "RD Station Marketing — Pro", preco: precos.pro };
+    }
+
+    return { nome: "RD Station Marketing — Enterprise", preco: precos.enterprise };
+}
+
+function planoCRM(vendedores, precos, minUsuarios) {
+
+    const usuarios = Math.max(vendedores, minUsuarios, 1);
+
+    let nome = "RD Station CRM — Basic";
+    let precoUnitario = precos.basic;
+
+    if (usuarios > 10) {
+        nome = "RD Station CRM — Plus";
+        precoUnitario = precos.plus;
+    } else if (usuarios > 3) {
+        nome = "RD Station CRM — Pro";
+        precoUnitario = precos.pro;
+    }
+
+    return {
+        nome: nome,
+        usuarios: usuarios,
+        preco: precoUnitario * usuarios
+    };
+}
+
+function planoConversas(atendentes, whatsapp, precoUnitario, minAtendentes) {
+
+    const seats = Math.max(atendentes, minAtendentes, 1);
+    const nivel = whatsapp > 3000 ? "Pro" : "Starter";
+
+    return {
+        nome: "RD Station Conversas — " + nivel,
+        atendentes: seats,
+        preco: precoUnitario * seats
+    };
+}
+
+
+function gerarDiagnostico() {
+
+    const empresa = texto("empresa") || "Empresa analisada";
+    const consultor = texto("consultor") || "Não informado";
+    const validadeInput = texto("validade");
+
+    const trafego = valor("trafego");
+    const seguidores = valor("seguidores");
+    const anuncios = valor("anuncios");
+    const midia = valor("midia");
+    const leads = valor("leads");
+    const contatosAtivos = valor("contatosAtivos");
+    const campanhas = valor("campanhas");
+    const whatsapp = valor("whatsapp");
+    const atendentes = valor("atendentes");
+    const vendedores = valor("vendedores");
+    const oportunidades = valor("oportunidades");
+    const pedidos = valor("pedidos");
+    const faturamento = valor("faturamento");
+    const funcionarios = valor("funcionarios");
+
+    const possuiCRM = texto("crm") === "sim";
+    const possuiAutomacao = texto("automacao") === "sim";
+    const possuiIA = texto("ia") === "sim";
+    const possuiEcommerce = texto("ecommerce") === "sim";
+
+    const ciclo = texto("ciclo");
+    const descontoAdicional = valor("descontoAdicional");
+    const incluirImplementacao = texto("incluirImplementacao") === "sim";
+
+    const precosMkt = {
+        light: valor("precoMktLight"),
+        basic: valor("precoMktBasic"),
+        pro: valor("precoMktPro"),
+        enterprise: valor("precoMktEnterprise")
+    };
+
+    const precosCrm = {
+        basic: valor("precoCrmBasic"),
+        pro: valor("precoCrmPro"),
+        plus: valor("precoCrmPlus")
+    };
+
+    const crmMinUsuarios = valor("crmMinUsuarios");
+    const precoConversasUnitario = valor("precoConversas");
+    const conversasMinAtendentes = valor("conversasMinAtendentes");
+    const taxaImplementacao = valor("taxaImplementacao");
+    const descontoAnual = valor("descontoAnual");
+    const descontoBienal = valor("descontoBienal");
+
+
+    /*
+    ==================================================
+    1. SCORE DE AQUISIÇÃO
+    ==================================================
+    */
+
+    let aquisicao = 0;
+    aquisicao += percentual(trafego, 50000) * 0.30;
+    aquisicao += percentual(seguidores, 100000) * 0.10;
+    aquisicao += percentual(anuncios, 30) * 0.20;
+    aquisicao += percentual(midia, 50000) * 0.15;
+    aquisicao += percentual(leads, 3000) * 0.25;
+
+
+    /*
+    ==================================================
+    2. SCORE DE ATENDIMENTO
+    ==================================================
+    */
+
+    let atendimento = 0;
+    atendimento += percentual(whatsapp, 10000) * 0.45;
+    atendimento += percentual(atendentes, 30) * 0.15;
+    atendimento += possuiIA ? 20 : 0;
+    if (whatsapp > 3000) atendimento += 15;
+    if (whatsapp > 7000) atendimento += 15;
+    atendimento = Math.min(100, atendimento);
+
+
+    /*
+    ==================================================
+    3. SCORE DE VENDAS
+    ==================================================
+    */
+
+    let vendas = 0;
+    vendas += percentual(vendedores, 30) * 0.25;
+    vendas += percentual(oportunidades, 1000) * 0.35;
+    vendas += percentual(leads, 3000) * 0.20;
+    vendas += possuiCRM ? 20 : 0;
+    vendas = Math.min(100, vendas);
+
+
+    /*
+    ==================================================
+    4. SCORE DE AUTOMAÇÃO
+    ==================================================
+    */
+
+    let automacaoScore = 0;
+    automacaoScore += campanhas > 5 ? 25 : campanhas * 5;
+    automacaoScore += possuiAutomacao ? 35 : 0;
+    automacaoScore += possuiIA ? 20 : 0;
+    automacaoScore += whatsapp > 3000 ? 20 : 0;
+    automacaoScore = Math.min(100, automacaoScore);
+
+
+    /*
+    ==================================================
+    5. SCORE COMMERCE
+    ==================================================
+    */
+
+    let commerce = 0;
+    if (possuiEcommerce) commerce += 40;
+    commerce += percentual(pedidos, 1000) * 0.30;
+    commerce += percentual(faturamento, 500000) * 0.30;
+    commerce = Math.min(100, commerce);
+
+
+    /*
+    ==================================================
+    6. MATURIDADE DIGITAL
+    ==================================================
+    */
+
+    const maturidade = Math.round(
+        aquisicao * 0.20 +
+        atendimento * 0.25 +
+        vendas * 0.25 +
+        automacaoScore * 0.20 +
+        commerce * 0.10
+    );
+
+
+    /*
+    ==================================================
+    7. NÍVEL
+    ==================================================
+    */
+
+    let nivel = "";
+
+    if (maturidade < 30) {
+        nivel = "Inicial — grande oportunidade de transformação";
+    } else if (maturidade < 50) {
+        nivel = "Em desenvolvimento — existem gargalos relevantes";
+    } else if (maturidade < 70) {
+        nivel = "Intermediária — operação possui boa base, mas pode evoluir";
+    } else if (maturidade < 85) {
+        nivel = "Avançada — operação digital estruturada";
+    } else {
+        nivel = "Muito avançada — alta maturidade digital";
+    }
+
+
+    /*
+    ==================================================
+    8. EXIBIR SCORES
+    ==================================================
+    */
+
+    document.getElementById("score").innerText = maturidade;
+    document.getElementById("nivel").innerText = nivel;
+    document.getElementById("progressBar").style.width = maturidade + "%";
+
+    document.getElementById("scoreAquisicao").innerText = Math.round(aquisicao);
+    document.getElementById("scoreAtendimento").innerText = Math.round(atendimento);
+    document.getElementById("scoreVendas").innerText = Math.round(vendas);
+    document.getElementById("scoreAutomacao").innerText = Math.round(automacaoScore);
+    document.getElementById("scoreCommerce").innerText = Math.round(commerce);
+
+
+    /*
+    ==================================================
+    9. METADADOS DA PROPOSTA E RESUMO
+    ==================================================
+    */
+
+    const agora = new Date();
+    const propostaId = "RD-" + agora.getFullYear() +
+        String(agora.getMonth() + 1).padStart(2, "0") +
+        String(agora.getDate()).padStart(2, "0") + "-" +
+        String(agora.getHours()).padStart(2, "0") +
+        String(agora.getMinutes()).padStart(2, "0");
+
+    document.getElementById("propostaId").innerText = propostaId;
+    document.getElementById("metaEmpresa").innerText = empresa;
+    document.getElementById("metaConsultor").innerText = consultor;
+    document.getElementById("metaData").innerText = formatDataBR(agora);
+    document.getElementById("metaValidade").innerText = validadeInput
+        ? formatDataBR(new Date(validadeInput + "T00:00:00"))
+        : "-";
+
+    document.getElementById("resEmpresa").innerText = empresa;
+    document.getElementById("resTrafego").innerText = trafego.toLocaleString("pt-BR");
+    document.getElementById("resLeads").innerText = leads.toLocaleString("pt-BR");
+    document.getElementById("resWhatsapp").innerText = whatsapp.toLocaleString("pt-BR");
+
+
+    /*
+    ==================================================
+    10. DIAGNÓSTICOS
+    ==================================================
+    */
+
+    let diagnosticos = "";
+
+    if (trafego > 20000 && leads < trafego * 0.02) {
+        diagnosticos += `
+        <div class="diagnostic">
+            <h3>Baixa conversão do tráfego</h3>
+            <p>
+                A empresa apresenta volume relevante de visitantes no site, mas a
+                geração de leads parece baixa proporcionalmente ao tráfego. Existe
+                oportunidade de melhorar conversão, landing pages, campanhas e automação.
+            </p>
+        </div>`;
+    }
+
+    if (whatsapp > 3000 && !possuiIA) {
+        diagnosticos += `
+        <div class="diagnostic">
+            <h3>Alto potencial de automação no atendimento</h3>
+            <p>
+                O volume de conversas no WhatsApp indica uma operação que pode se
+                beneficiar de automação, inteligência artificial, distribuição de
+                atendimentos e padronização das respostas.
+            </p>
+        </div>`;
+    }
+
+    if (leads > 500 && !possuiCRM) {
+        diagnosticos += `
+        <div class="diagnostic">
+            <h3>Ausência de gestão estruturada de leads</h3>
+            <p>
+                O volume de leads identificado justifica uma estrutura centralizada
+                de CRM para acompanhar oportunidades, vendedores, etapas do funil e
+                follow-up.
+            </p>
+        </div>`;
+    }
+
+    if (anuncios > 10 && !possuiAutomacao) {
+        diagnosticos += `
+        <div class="diagnostic">
+            <h3>Investimento em aquisição sem automação</h3>
+            <p>
+                A quantidade de anúncios indica uma operação ativa de aquisição. A
+                ausência de automação pode representar perda de eficiência no
+                relacionamento com os leads.
+            </p>
+        </div>`;
+    }
+
+    if (pedidos > 100 && possuiEcommerce) {
+        diagnosticos += `
+        <div class="diagnostic">
+            <h3>Operação de Commerce ativa</h3>
+            <p>
+                O volume de pedidos demonstra uma operação digital já estabelecida.
+                Existe oportunidade de integrar aquisição, atendimento,
+                relacionamento e conversão.
+            </p>
+        </div>`;
+    }
+
+    if (!diagnosticos) {
+        diagnosticos = `
+        <div class="diagnostic">
+            <h3>Operação relativamente equilibrada</h3>
+            <p>
+                Não foram identificados gargalos críticos pelos parâmetros
+                informados. A oportunidade está principalmente na evolução da
+                maturidade e integração dos canais.
+            </p>
+        </div>`;
+    }
+
+    document.getElementById("diagnosticos").innerHTML = diagnosticos;
+
+
+    /*
+    ==================================================
+    11. PROPOSTA COMERCIAL (produtos, planos e preços)
+    ==================================================
+    */
+
+    const incluirMarketing = trafego > 10000 || anuncios > 5 || campanhas > 3;
+    const incluirCRM = leads > 500 || vendedores > 5 || !possuiCRM;
+    const incluirConversas = whatsapp > 3000 || !possuiIA;
+
+    const itensProposta = [];
+
+    if (incluirMarketing) {
+        const plano = planoMarketing(contatosAtivos, precosMkt);
+        itensProposta.push({
+            tag: "MARKETING",
+            nome: plano.nome,
+            base: contatosAtivos.toLocaleString("pt-BR") + " contatos ativos na base",
+            preco: plano.preco
+        });
+    }
+
+    if (incluirCRM) {
+        const plano = planoCRM(vendedores, precosCrm, crmMinUsuarios);
+        itensProposta.push({
+            tag: "VENDAS",
+            nome: plano.nome,
+            base: plano.usuarios + " usuário(s) / vendedor(es)",
+            preco: plano.preco
+        });
+    }
+
+    if (incluirConversas) {
+        const plano = planoConversas(atendentes, whatsapp, precoConversasUnitario, conversasMinAtendentes);
+        itensProposta.push({
+            tag: "ATENDIMENTO",
+            nome: plano.nome,
+            base: plano.atendentes + " atendente(s) — " + whatsapp.toLocaleString("pt-BR") + " conversas/mês",
+            preco: plano.preco
+        });
+    }
+
+    const linhasEl = document.getElementById("propostaLinhas");
+    const vazioEl = document.getElementById("propostaVazia");
+    const totaisEl = document.getElementById("propostaTotais");
+
+    if (itensProposta.length === 0) {
+
+        linhasEl.innerHTML = "";
+        vazioEl.classList.remove("hidden");
+        totaisEl.innerHTML = "";
+
+    } else {
+
+        vazioEl.classList.add("hidden");
+
+        linhasEl.innerHTML = itensProposta.map(item => `
+            <tr>
+                <td>
+                    <span class="tag">${item.tag}</span>
+                    <div class="product-name">${item.nome}</div>
+                </td>
+                <td class="product-basis">${item.base}</td>
+                <td class="value">${formatBRL(item.preco)}</td>
+            </tr>
+        `).join("");
+
+        const subtotal = itensProposta.reduce((soma, item) => soma + item.preco, 0);
+
+        let percentualDesconto = descontoAdicional;
+        let meses = 1;
+        let cicloLabel = "Mensal (sem fidelidade)";
+
+        if (ciclo === "anual") {
+            percentualDesconto += descontoAnual;
+            meses = 12;
+            cicloLabel = "Anual (12 meses)";
+        } else if (ciclo === "bienal") {
+            percentualDesconto += descontoBienal;
+            meses = 24;
+            cicloLabel = "Bienal (24 meses)";
+        }
+
+        percentualDesconto = Math.min(100, percentualDesconto);
+
+        const valorDesconto = subtotal * (percentualDesconto / 100);
+        const totalMensal = subtotal - valorDesconto;
+        const taxaAplicada = incluirImplementacao ? taxaImplementacao : 0;
+        const totalContrato = (totalMensal * meses) + taxaAplicada;
+
+        totaisEl.innerHTML = `
+            <div class="totals-row">
+                <span>Subtotal mensal</span>
+                <span>${formatBRL(subtotal)}</span>
+            </div>
+            <div class="totals-row">
+                <span>Desconto (${cicloLabel}${descontoAdicional > 0 ? " + comercial" : ""} — ${percentualDesconto.toFixed(1)}%)</span>
+                <span>- ${formatBRL(valorDesconto)}</span>
+            </div>
+            <div class="totals-row">
+                <span>Taxa de implementação (única)</span>
+                <span>${incluirImplementacao ? formatBRL(taxaAplicada) : "Não incluída"}</span>
+            </div>
+            <div class="totals-row grand">
+                <span>Total mensal</span>
+                <span class="value">${formatBRL(totalMensal)}</span>
+            </div>
+            <div class="totals-row">
+                <span>Total do contrato (${meses} ${meses === 1 ? "mês" : "meses"} + implementação)</span>
+                <span><strong>${formatBRL(totalContrato)}</strong></span>
+            </div>
+        `;
+    }
+
+
+    /*
+    ==================================================
+    12. ESCOPO PROJETADO
+    ==================================================
+    */
+
+    let escopo = "";
+
+    if (incluirConversas) {
+        const conversasPorAtendente = atendentes > 0 ? Math.round(whatsapp / atendentes) : whatsapp;
+        escopo += `
+        <div class="scope-item">
+            <strong>Atendimento e IA (RD Station Conversas)</strong>
+            Estruturação de atendimento digital considerando aproximadamente
+            ${whatsapp.toLocaleString("pt-BR")} conversas mensais e
+            ${atendentes} atendentes.
+            <br><br>
+            Volume médio estimado: ${conversasPorAtendente.toLocaleString("pt-BR")}
+            conversas por atendente/mês.
+        </div>`;
+    }
+
+    if (incluirCRM) {
+        escopo += `
+        <div class="scope-item">
+            <strong>CRM e Gestão Comercial (RD Station CRM)</strong>
+            Estruturação de CRM para ${vendedores} vendedores, considerando
+            aproximadamente ${leads.toLocaleString("pt-BR")} leads e
+            ${oportunidades.toLocaleString("pt-BR")} oportunidades mensais.
+        </div>`;
+    }
+
+    if (incluirMarketing) {
+        escopo += `
+        <div class="scope-item">
+            <strong>Marketing e Geração de Demanda (RD Station Marketing)</strong>
+            Estruturação de jornadas de relacionamento, automações e campanhas
+            considerando aproximadamente ${trafego.toLocaleString("pt-BR")} acessos
+            mensais e ${contatosAtivos.toLocaleString("pt-BR")} contatos ativos na base.
+        </div>`;
+    }
+
+    if (pedidos > 50 || faturamento > 10000) {
+        escopo += `
+        <div class="scope-item">
+            <strong>Commerce (oportunidade complementar)</strong>
+            Evolução da operação digital considerando aproximadamente
+            ${pedidos.toLocaleString("pt-BR")} pedidos mensais e faturamento online
+            estimado de ${formatBRL(faturamento)}/mês. Não incluso no valor da
+            proposta RD Station.
+        </div>`;
+    }
+
+    escopo += `
+        <div class="scope-item">
+            <strong>Próxima etapa</strong>
+            Validar o diagnóstico com o cliente, aprofundar os processos atuais e
+            transformar as oportunidades identificadas em um plano de implementação
+            priorizado.
+        </div>`;
+
+    document.getElementById("escopo").innerHTML = escopo;
+
+
+    /*
+    ==================================================
+    13. MOSTRAR RESULTADO
+    ==================================================
+    */
+
+    document.getElementById("resultado").style.display = "block";
+
+    window.scrollTo({
+        top: document.getElementById("resultado").offsetTop - 20,
+        behavior: "smooth"
+    });
+
+}
+
+
+/*
+==================================================
+LIMPAR
+==================================================
+*/
+
+function limparFormulario() {
+
+    document.getElementById("formulario")
+        .querySelectorAll("input, select")
+        .forEach(campo => {
+
+            if (campo.type === "number") {
+                campo.value = campo.defaultValue;
+            } else if (campo.type === "date") {
+                campo.value = "";
+            } else if (campo.tagName === "SELECT") {
+                campo.selectedIndex = 0;
+            } else {
+                campo.value = "";
+            }
+
+        });
+
+    document.getElementById("resultado").style.display = "none";
+    window.scrollTo({ top: 0, behavior: "smooth" });
+
+}
+
+
+/*
+==================================================
+VOLTAR PARA FORMULÁRIO
+==================================================
+*/
+
+function voltarFormulario() {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+</script>
+
+</body>
+</html>
