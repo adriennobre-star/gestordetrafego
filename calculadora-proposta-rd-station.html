@@ -1108,6 +1108,50 @@
         </div>
 
 
+        <!-- COMPLEMENTOS RD STATION CONVERSAS -->
+
+        <div class="card" id="cardComplementosConversas" hidden>
+
+            <h2>
+                Complementos RD Station Conversas
+                <small>Números extras e simulador de crédito de mensageria — guia Addons RDSC + Mensageria</small>
+            </h2>
+
+            <div class="section-title">Números de WhatsApp extras <span class="section-hint">(mensal, por número adicional)</span></div>
+
+            <div class="field" style="max-width:260px;">
+                <label>Quantidade de números extras</label>
+                <input id="numerosExtras" type="number" min="0" step="1" value="0" oninput="atualizarProposta()">
+            </div>
+
+            <div class="section-title">Simulador de crédito de mensageria <span class="section-hint">(pagamento único, consumo via créditos)</span></div>
+
+            <div class="grid">
+
+                <div class="field">
+                    <label>Tipo de mensagem</label>
+                    <select id="tipoMensagem" onchange="atualizarProposta()">
+                        <option value="utilidade">WhatsApp — Template de Utilidade (R$ 0,043/msg)</option>
+                        <option value="autenticacao">WhatsApp — Template de Autenticação (R$ 0,043/msg)</option>
+                        <option value="marketing">WhatsApp — Template de Marketing (R$ 0,394/msg)</option>
+                        <option value="servico">WhatsApp — Mensagem de Serviço (sem custo)</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label>Crédito a comprar (R$, pagamento único)</label>
+                    <input id="creditoMensageria" type="number" min="0" step="10" value="0" oninput="atualizarProposta()">
+                </div>
+
+            </div>
+
+            <div class="totals" id="complementosTotais" style="border-top:none; margin-top:10px; padding-top:0;"></div>
+
+            <p class="disclaimer" id="complementosNota"></p>
+
+        </div>
+
+
         <!-- ESCOPO -->
 
         <div class="card">
@@ -1262,6 +1306,18 @@ const PRECOS = {
         advancedAcima20k: (v) => 18099 + 0.42 * (v - 20000)
     },
 
+    // Addons RDSC + Mensageria (guia própria da tabela oficial, BRL 2026-2).
+    conversasAddons: {
+        numeroExtra: 599, // por número de WhatsApp extra/mês, linear
+        // Consumo via créditos (pagamento único), por mensagem.
+        mensageria: {
+            utilidade: 0.043,
+            autenticacao: 0.043,
+            marketing: 0.394,
+            servico: 0
+        }
+    },
+
     // Implantação — guia Serviços, valores por produto contratado (BRL 2026-2).
     implementacao: {
         modulo: { marketing: 1319, crm: 1319, conversas: 1319 },
@@ -1413,6 +1469,8 @@ function atualizarProposta() {
 
     let subtotalBruto = 0;
     const incluidos = [];
+    let conversasNaProposta = false;
+    let conversasMarcada = false;
 
     propostaItens.forEach(item => {
         const checkbox = document.querySelector('.proposta-check[data-id="' + item.id + '"]');
@@ -1422,6 +1480,11 @@ function atualizarProposta() {
 
         if (linha) linha.classList.toggle("linha-removida", !marcado);
         if (scopeEl) scopeEl.hidden = !marcado;
+
+        if (item.id === "conversas") {
+            conversasNaProposta = true;
+            conversasMarcada = marcado;
+        }
 
         if (marcado) {
             subtotalBruto += item.preco;
@@ -1485,9 +1548,67 @@ function atualizarProposta() {
 
     const valorDescontoImplantacao = isento ? implantacaoBruta : implantacaoBruta * (descontoImplantacao / 100);
     const implantacaoTotal = isento ? 0 : implantacaoBruta - valorDescontoImplantacao;
-
-    const totalContrato = (subtotalMensal * meses) + implantacaoTotal;
     const valorParcela = implantacaoTotal / parcelas;
+
+    // Complementos RD Station Conversas (guia Addons RDSC + Mensageria):
+    // números extras somam ao mensal recorrente, crédito de mensageria é
+    // pagamento único e soma ao total do contrato.
+    const cardComplementos = document.getElementById("cardComplementosConversas");
+    const numerosExtrasInput = document.getElementById("numerosExtras");
+    const tipoMensagemSelect = document.getElementById("tipoMensagem");
+    const creditoInput = document.getElementById("creditoMensageria");
+
+    cardComplementos.hidden = !conversasNaProposta;
+
+    let qtdNumerosExtras = 0;
+    let valorNumerosExtras = 0;
+    let tipoMensagem = tipoMensagemSelect.value;
+    let precoMensagem = PRECOS.conversasAddons.mensageria[tipoMensagem];
+    let creditoMensageria = 0;
+    let mensagensEstimadas = null;
+
+    if (conversasNaProposta) {
+
+        numerosExtrasInput.disabled = !conversasMarcada;
+        tipoMensagemSelect.disabled = !conversasMarcada;
+        creditoInput.disabled = !conversasMarcada;
+
+        qtdNumerosExtras = conversasMarcada ? Math.max(0, Math.round(valor("numerosExtras"))) : 0;
+        valorNumerosExtras = qtdNumerosExtras * PRECOS.conversasAddons.numeroExtra;
+        creditoMensageria = conversasMarcada ? Math.max(0, valor("creditoMensageria")) : 0;
+        mensagensEstimadas = precoMensagem > 0 ? Math.floor(creditoMensageria / precoMensagem) : null;
+
+        const TIPO_MENSAGEM_LABEL = {
+            utilidade: "WhatsApp — Template de Utilidade",
+            autenticacao: "WhatsApp — Template de Autenticação",
+            marketing: "WhatsApp — Template de Marketing",
+            servico: "WhatsApp — Mensagem de Serviço"
+        };
+
+        document.getElementById("complementosTotais").innerHTML = `
+            <div class="totals-row">
+                <span>Números extras (${qtdNumerosExtras} × ${formatBRL(PRECOS.conversasAddons.numeroExtra)}/mês)</span>
+                <span>${formatBRL(valorNumerosExtras)}/mês</span>
+            </div>
+            <div class="totals-row">
+                <span>Crédito de mensageria — ${TIPO_MENSAGEM_LABEL[tipoMensagem]} (pagamento único)</span>
+                <span>${formatBRL(creditoMensageria)}</span>
+            </div>
+            <div class="totals-row grand">
+                <span>Mensagens estimadas com esse crédito</span>
+                <span class="value">${mensagensEstimadas === null ? "Sem custo por mensagem" : mensagensEstimadas.toLocaleString("pt-BR") + " mensagens"}</span>
+            </div>
+        `;
+
+        document.getElementById("complementosNota").textContent = conversasMarcada
+            ? "Valores da guia Addons RDSC + Mensageria (tabela oficial RD Station 2026, revisão BRL 2026-2, " +
+              "consumo via créditos). Números extras somam ao total mensal; o crédito de mensageria é pagamento " +
+              "único e soma ao total do contrato."
+            : "Disponível apenas com RD Station Conversas incluído e selecionado na proposta acima.";
+    }
+
+    const totalMensalGeral = subtotalMensal + valorNumerosExtras;
+    const totalContrato = (totalMensalGeral * meses) + implantacaoTotal + creditoMensageria;
 
     const implantacaoEl = document.getElementById("implantacaoTotais");
 
@@ -1518,7 +1639,7 @@ function atualizarProposta() {
             <span>${isento ? "Não aplicável (isento)" : parcelas + "x de " + formatBRL(valorParcela)}</span>
         </div>
         <div class="totals-row">
-            <span>Total do contrato (${meses} ${meses === 1 ? "mês" : "meses"} + implantação)</span>
+            <span>Total do contrato (${meses} ${meses === 1 ? "mês" : "meses"}${valorNumerosExtras > 0 ? " + números extras" : ""} + implantação${creditoMensageria > 0 ? " + crédito de mensageria" : ""})</span>
             <span><strong>${formatBRL(totalContrato)}</strong></span>
         </div>
     `;
@@ -1532,7 +1653,9 @@ function atualizarProposta() {
     ultimoResumoProposta = {
         incluidos, cicloLabel, subtotalBruto, descontoProdutos, valorDescontoProdutos, subtotalMensal,
         tipo, isento, descontoImplantacao, implantacaoBruta, implantacaoTotal, parcelas, valorParcela,
-        totalContrato, meses
+        conversasNaProposta, conversasMarcada, qtdNumerosExtras, valorNumerosExtras,
+        tipoMensagem, creditoMensageria, mensagensEstimadas,
+        totalMensalGeral, totalContrato, meses
     };
 }
 
@@ -1588,6 +1711,15 @@ function enviarWhatsApp() {
     }
     linhas.push("*Total mensal:* " + formatBRL(r.subtotalMensal));
 
+    if (r.conversasMarcada && r.qtdNumerosExtras > 0) {
+        linhas.push("Números de WhatsApp extras: " + r.qtdNumerosExtras + " × " + formatBRL(PRECOS.conversasAddons.numeroExtra) + "/mês = " + formatBRL(r.valorNumerosExtras) + "/mês");
+    }
+
+    if (r.conversasMarcada && r.creditoMensageria > 0) {
+        linhas.push("Crédito de mensageria (pagamento único): " + formatBRL(r.creditoMensageria) +
+            (r.mensagensEstimadas === null ? " — mensagem sem custo" : " ≈ " + r.mensagensEstimadas.toLocaleString("pt-BR") + " mensagens"));
+    }
+
     if (r.isento) {
         linhas.push("*Implantação (" + TIPO_IMPLANTACAO_LABEL[r.tipo] + "):* isenta (valor de tabela " + formatBRL(r.implantacaoBruta) + ")");
     } else {
@@ -1596,7 +1728,7 @@ function enviarWhatsApp() {
             " " + formatBRL(r.implantacaoTotal) + " em " + r.parcelas + "x de " + formatBRL(r.valorParcela));
     }
 
-    linhas.push("*Total do contrato (" + r.meses + (r.meses === 1 ? " mês" : " meses") + " + implantação):* " + formatBRL(r.totalContrato));
+    linhas.push("*Total do contrato:* " + formatBRL(r.totalContrato));
     linhas.push("");
     linhas.push("Estimativa sujeita à confirmação comercial.");
 
@@ -1924,6 +2056,9 @@ function gerarDiagnostico() {
         document.getElementById("propostaTotais").innerHTML = "";
         document.getElementById("implantacaoTotais").innerHTML = "";
         document.getElementById("implantacaoNota").textContent = "";
+        document.getElementById("cardComplementosConversas").hidden = true;
+        document.getElementById("complementosTotais").innerHTML = "";
+        document.getElementById("complementosNota").textContent = "";
 
     } else {
 
