@@ -976,23 +976,32 @@ function precoPorFaixa(volume, tabela) {
     return { preco: tabela[tabela.length - 1][1], excedeu: true };
 }
 
-function planoMarketing(leads, possuiAutomacao, campanhas) {
+// Base de contatos a ser trabalhada: leads captados no mês projetados para
+// 12 meses, acrescidos de 30% de gordura para cobrir a base de clientes/leads
+// já existente (não apenas os novos leads mensais).
+function estimarBaseClientes(leadsPorMes) {
+    return Math.round(Math.max(leadsPorMes, 0) * 12 * 1.3);
+}
+
+function planoMarketing(leadsPorMes, possuiAutomacao, campanhas) {
+
+    const base = estimarBaseClientes(leadsPorMes);
 
     // Sinais de automação/campanhas já coletados decidem a família de plano;
-    // o volume de leads decide o degrau dentro da família.
+    // a base anual de contatos decide o degrau dentro da família.
     const premium = possuiAutomacao || campanhas > 8;
 
     if (!premium) {
-        const tier = leads <= 1000 ? "light" : "basic";
+        const tier = base <= 1000 ? "light" : "basic";
         const tabela = PRECOS.marketingEntry[tier];
-        const { preco, excedeu } = precoPorFaixa(leads, tabela);
-        return { nome: "RD Station Marketing — " + (tier === "light" ? "Light" : "Basic"), preco, excedeu };
+        const { preco, excedeu } = precoPorFaixa(base, tabela);
+        return { nome: "RD Station Marketing — " + (tier === "light" ? "Light" : "Basic"), base, preco, excedeu };
     }
 
-    const tier = leads <= 25000 ? "pro" : "advanced";
+    const tier = base <= 25000 ? "pro" : "advanced";
     const tabela = PRECOS.marketingPremium[tier];
-    const { preco, excedeu } = precoPorFaixa(leads, tabela);
-    return { nome: "RD Station Marketing — " + (tier === "pro" ? "Pro" : "Advanced"), preco, excedeu };
+    const { preco, excedeu } = precoPorFaixa(base, tabela);
+    return { nome: "RD Station Marketing — " + (tier === "pro" ? "Pro" : "Advanced"), base, preco, excedeu };
 }
 
 function planoCRM(vendedores) {
@@ -1322,8 +1331,9 @@ function gerarDiagnostico() {
         itensProposta.push({
             tag: "MARKETING",
             nome: plano.nome,
-            base: leads.toLocaleString("pt-BR") + " leads/mês" +
-                (plano.excedeu ? " (acima da tabela padrão — sob consulta)" : ""),
+            base: "~" + plano.base.toLocaleString("pt-BR") + " contatos/ano (" +
+                leads.toLocaleString("pt-BR") + " leads/mês × 12 + 30% de gordura)" +
+                (plano.excedeu ? " — acima da tabela padrão, sob consulta" : ""),
             preco: plano.preco
         });
     }
@@ -1444,7 +1454,9 @@ function gerarDiagnostico() {
             <strong>Marketing e Geração de Demanda (RD Station Marketing)</strong>
             Estruturação de jornadas de relacionamento, automações e campanhas
             considerando aproximadamente ${trafego.toLocaleString("pt-BR")} acessos
-            mensais e ${leads.toLocaleString("pt-BR")} leads gerados por mês.
+            mensais e uma base projetada de ${estimarBaseClientes(leads).toLocaleString("pt-BR")}
+            contatos/ano (${leads.toLocaleString("pt-BR")} leads/mês × 12 + 30% de gordura
+            para a base já existente).
         </div>`;
     }
 
