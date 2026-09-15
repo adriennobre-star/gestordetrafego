@@ -332,6 +332,25 @@
         white-space: nowrap;
     }
 
+    table.proposal-table td.check {
+        padding-right: 0;
+    }
+
+    table.proposal-table td.check input {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+    }
+
+    table.proposal-table tr.linha-removida {
+        opacity: .4;
+    }
+
+    table.proposal-table tr.linha-removida .product-name,
+    table.proposal-table tr.linha-removida td.value {
+        text-decoration: line-through;
+    }
+
     .tag {
         display: inline-block;
         padding: 5px 9px;
@@ -477,6 +496,15 @@
 
         #formulario,
         .button-area {
+            display: none;
+        }
+
+        table.proposal-table th:first-child,
+        table.proposal-table td.check {
+            display: none;
+        }
+
+        table.proposal-table tr.linha-removida {
             display: none;
         }
 
@@ -834,6 +862,7 @@
 
                 <thead>
                     <tr>
+                        <th style="width:34px;"></th>
                         <th>Produto</th>
                         <th>Base de cálculo</th>
                         <th style="text-align:right;">Valor mensal</th>
@@ -848,13 +877,61 @@
                 Nenhum produto RD Station foi recomendado para os volumes informados.
             </div>
 
+            <p class="empty-note hidden" id="propostaTodasDesmarcadas">
+                Nenhuma solução selecionada — marque ao menos uma acima para compor a proposta.
+            </p>
+
             <div class="totals" id="propostaTotais"></div>
 
             <p class="disclaimer">
                 Plano, quantidade e valor de cada produto são sugeridos automaticamente a
                 partir dos dados informados, com base na tabela oficial de planos e preços
-                RD Station 2026 (guias BRL). Estimativa sujeita à confirmação comercial.
+                RD Station 2026 (guias BRL). Desmarque a caixa de seleção de um produto para
+                retirá-lo da proposta final. Estimativa sujeita à confirmação comercial.
             </p>
+
+        </div>
+
+
+        <!-- IMPLANTAÇÃO E PAGAMENTO -->
+
+        <div class="card">
+
+            <h2>
+                Implantação e Condições de Pagamento
+                <small>Consulte a guia Serviços para escolher o tipo de implantação e o parcelamento</small>
+            </h2>
+
+            <div class="grid">
+
+                <div class="field">
+                    <label>Tipo de implantação</label>
+                    <select id="tipoImplantacao" onchange="atualizarProposta()">
+                        <option value="modulo">Módulo de implementação (padrão, por produto)</option>
+                        <option value="parceiroAtivo">Onboarding Parceiros Ativos (por produto)</option>
+                        <option value="vendasDiretas">Onboarding Vendas Diretas (por produto)</option>
+                        <option value="fullService">Onboarding Full Service (por produto)</option>
+                        <option value="duo">Onboarding Multiproduto Duo (2 produtos)</option>
+                        <option value="trio">Onboarding Multiproduto Trio (3 produtos)</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label>Parcelamento da implantação</label>
+                    <select id="parcelasImplantacao" onchange="atualizarProposta()">
+                        <option value="1">1x (à vista)</option>
+                        <option value="2">2x</option>
+                        <option value="3">3x</option>
+                        <option value="6">6x</option>
+                        <option value="12">12x</option>
+                    </select>
+                </div>
+
+            </div>
+
+            <div class="totals" id="implantacaoTotais" style="border-top:none; margin-top:10px; padding-top:0;"></div>
+
+            <p class="disclaimer" id="implantacaoNota"></p>
 
         </div>
 
@@ -915,6 +992,11 @@ function formatDataBR(date) {
     return date.toLocaleDateString("pt-BR");
 }
 
+// Produtos sugeridos pelo diagnóstico na última proposta gerada. A caixa de
+// seleção de cada linha liga/desliga o produto do total, sem precisar gerar
+// o diagnóstico de novo.
+let propostaItens = [];
+
 // Preenche a validade padrão (hoje + 7 dias) ao carregar a página.
 (function definirValidadePadrao() {
     const campo = document.getElementById("validade");
@@ -963,9 +1045,33 @@ const PRECOS = {
         advancedAcima20k: (v) => 18099 + 0.42 * (v - 20000)
     },
 
-    // Módulo de implementação (Parceiros), por produto contratado.
-    implementacao: { marketing: 1319, crm: 1319, conversas: 1319 }
+    // Implantação — guia Serviços, valores por produto contratado (BRL 2026-2).
+    implementacao: {
+        modulo: { marketing: 1319, crm: 1319, conversas: 1319 },
+        parceiroAtivo: { marketing: 1499, crm: 849, conversas: 1999 },
+        vendasDiretas: {
+            marketing: { padrao: 1499, advanced: 1999 },
+            crm: { padrao: 849, advanced: 1999 },
+            conversas: { padrao: 1999, advanced: 1999 }
+        },
+        fullService: { marketing: 14599, crm: 8599, conversas: 8599 },
+        duo: 2199,
+        trio: 3199
+    }
 };
+
+// Custo de implantação de um produto, conforme o tipo escolhido. Para
+// "Vendas Diretas" o onboarding do plano Advanced custa mais que os
+// demais planos (conforme guia Serviços).
+function custoImplantacaoProduto(id, tipo, nomePlano) {
+    if (tipo === "parceiroAtivo") return PRECOS.implementacao.parceiroAtivo[id];
+    if (tipo === "fullService") return PRECOS.implementacao.fullService[id];
+    if (tipo === "vendasDiretas") {
+        const tabela = PRECOS.implementacao.vendasDiretas[id];
+        return nomePlano.includes("Advanced") ? tabela.advanced : tabela.padrao;
+    }
+    return PRECOS.implementacao.modulo[id];
+}
 
 // Procura a menor faixa de volume >= valor informado (planos são vendidos
 // em degraus fixos). Acima da última faixa, mantém o preço-teto e sinaliza.
@@ -1051,6 +1157,108 @@ function planoConversas(clientesAtendidos) {
 }
 
 
+/*
+==================================================
+SELEÇÃO DE PRODUTOS, IMPLANTAÇÃO E PARCELAMENTO
+==================================================
+Reage à caixa de seleção de cada produto e às escolhas de tipo de
+implantação/parcelamento, sem precisar gerar o diagnóstico de novo.
+*/
+
+function atualizarProposta() {
+
+    if (propostaItens.length === 0) return;
+
+    const ciclo = texto("ciclo");
+    const meses = ciclo === "anual" ? 12 : ciclo === "bienal" ? 24 : 1;
+    const cicloLabel = ciclo === "anual"
+        ? "Anual (12 meses)"
+        : ciclo === "bienal" ? "Bienal (24 meses)" : "Mensal (sem fidelidade)";
+
+    let subtotalMensal = 0;
+    const incluidos = [];
+
+    propostaItens.forEach(item => {
+        const checkbox = document.querySelector('.proposta-check[data-id="' + item.id + '"]');
+        const marcado = !checkbox || checkbox.checked;
+        const linha = document.getElementById("linha-" + item.id);
+        const scopeEl = document.querySelector('.scope-item[data-produto="' + item.id + '"]');
+
+        if (linha) linha.classList.toggle("linha-removida", !marcado);
+        if (scopeEl) scopeEl.hidden = !marcado;
+
+        if (marcado) {
+            subtotalMensal += item.preco;
+            incluidos.push(item);
+        }
+    });
+
+    document.getElementById("propostaTodasDesmarcadas").classList.toggle("hidden", incluidos.length > 0);
+
+    document.getElementById("propostaTotais").innerHTML = `
+        <div class="totals-row">
+            <span>Ciclo de contrato</span>
+            <span>${cicloLabel}</span>
+        </div>
+        <div class="totals-row grand">
+            <span>Total mensal (produtos selecionados)</span>
+            <span class="value">${formatBRL(subtotalMensal)}</span>
+        </div>
+    `;
+
+    // Onboarding Multiproduto só se aplica quando a quantidade de produtos
+    // selecionados bate exatamente com o pacote (Duo = 2, Trio = 3).
+    const tipoSelect = document.getElementById("tipoImplantacao");
+    const optDuo = tipoSelect.querySelector('option[value="duo"]');
+    const optTrio = tipoSelect.querySelector('option[value="trio"]');
+    optDuo.disabled = incluidos.length !== 2;
+    optTrio.disabled = incluidos.length !== 3;
+    if ((tipoSelect.value === "duo" && optDuo.disabled) || (tipoSelect.value === "trio" && optTrio.disabled)) {
+        tipoSelect.value = "modulo";
+    }
+
+    const tipo = tipoSelect.value;
+    const parcelas = Number(document.getElementById("parcelasImplantacao").value) || 1;
+
+    let implantacaoTotal = 0;
+
+    if (incluidos.length > 0) {
+        implantacaoTotal = (tipo === "duo" || tipo === "trio")
+            ? PRECOS.implementacao[tipo]
+            : incluidos.reduce((soma, item) => soma + custoImplantacaoProduto(item.id, tipo, item.nome), 0);
+    }
+
+    const totalContrato = (subtotalMensal * meses) + implantacaoTotal;
+    const valorParcela = implantacaoTotal / parcelas;
+
+    const implantacaoEl = document.getElementById("implantacaoTotais");
+
+    implantacaoEl.innerHTML = incluidos.length === 0 ? "" : `
+        <div class="totals-row">
+            <span>Produtos considerados</span>
+            <span>${incluidos.map(item => item.nome.replace("RD Station ", "")).join(", ")}</span>
+        </div>
+        <div class="totals-row grand">
+            <span>Valor da implantação</span>
+            <span class="value">${formatBRL(implantacaoTotal)}</span>
+        </div>
+        <div class="totals-row">
+            <span>Parcelamento</span>
+            <span>${parcelas}x de ${formatBRL(valorParcela)}</span>
+        </div>
+        <div class="totals-row">
+            <span>Total do contrato (${meses} ${meses === 1 ? "mês" : "meses"} + implantação)</span>
+            <span><strong>${formatBRL(totalContrato)}</strong></span>
+        </div>
+    `;
+
+    document.getElementById("implantacaoNota").textContent = incluidos.length === 0
+        ? "Selecione ao menos um produto na proposta acima para calcular a implantação."
+        : "Valores de implantação conforme a guia Serviços da tabela oficial RD Station 2026 " +
+          "(revisão BRL 2026-2). Parcelamento sem juros — condições finais sujeitas à confirmação comercial.";
+}
+
+
 function gerarDiagnostico() {
 
     const empresa = texto("empresa") || "Empresa analisada";
@@ -1075,8 +1283,6 @@ function gerarDiagnostico() {
     const possuiAutomacao = texto("automacao") === "sim";
     const possuiIA = texto("ia") === "sim";
     const possuiEcommerce = texto("ecommerce") === "sim";
-
-    const ciclo = texto("ciclo");
 
 
     /*
@@ -1322,13 +1528,12 @@ function gerarDiagnostico() {
     const incluirCRM = leads > 500 || vendedores > 5 || !possuiCRM;
     const incluirConversas = whatsapp > 3000 || !possuiIA;
 
-    const itensProposta = [];
-    let implementacaoTotal = 0;
+    propostaItens = [];
 
     if (incluirMarketing) {
         const plano = planoMarketing(leads, possuiAutomacao, campanhas);
-        implementacaoTotal += PRECOS.implementacao.marketing;
-        itensProposta.push({
+        propostaItens.push({
+            id: "marketing",
             tag: "MARKETING",
             nome: plano.nome,
             base: "~" + plano.base.toLocaleString("pt-BR") + " contatos/ano (" +
@@ -1340,8 +1545,8 @@ function gerarDiagnostico() {
 
     if (incluirCRM) {
         const plano = planoCRM(vendedores);
-        implementacaoTotal += PRECOS.implementacao.crm;
-        itensProposta.push({
+        propostaItens.push({
+            id: "crm",
             tag: "VENDAS",
             nome: plano.nome,
             base: plano.usuarios + " usuário(s) / vendedor(es)",
@@ -1351,8 +1556,8 @@ function gerarDiagnostico() {
 
     if (incluirConversas) {
         const plano = planoConversas(whatsapp);
-        implementacaoTotal += PRECOS.implementacao.conversas;
-        itensProposta.push({
+        propostaItens.push({
+            id: "conversas",
             tag: "ATENDIMENTO",
             nome: plano.nome,
             base: whatsapp.toLocaleString("pt-BR") + " conversas/mês (clientes atendidos)" +
@@ -1363,20 +1568,25 @@ function gerarDiagnostico() {
 
     const linhasEl = document.getElementById("propostaLinhas");
     const vazioEl = document.getElementById("propostaVazia");
-    const totaisEl = document.getElementById("propostaTotais");
 
-    if (itensProposta.length === 0) {
+    if (propostaItens.length === 0) {
 
         linhasEl.innerHTML = "";
         vazioEl.classList.remove("hidden");
-        totaisEl.innerHTML = "";
+        document.getElementById("propostaTodasDesmarcadas").classList.add("hidden");
+        document.getElementById("propostaTotais").innerHTML = "";
+        document.getElementById("implantacaoTotais").innerHTML = "";
+        document.getElementById("implantacaoNota").textContent = "";
 
     } else {
 
         vazioEl.classList.add("hidden");
 
-        linhasEl.innerHTML = itensProposta.map(item => `
-            <tr>
+        linhasEl.innerHTML = propostaItens.map(item => `
+            <tr id="linha-${item.id}">
+                <td class="check">
+                    <input type="checkbox" class="proposta-check" data-id="${item.id}" checked onchange="atualizarProposta()">
+                </td>
                 <td>
                     <span class="tag">${item.tag}</span>
                     <div class="product-name">${item.nome}</div>
@@ -1385,34 +1595,6 @@ function gerarDiagnostico() {
                 <td class="value">${formatBRL(item.preco)}</td>
             </tr>
         `).join("");
-
-        const totalMensal = itensProposta.reduce((soma, item) => soma + item.preco, 0);
-
-        const meses = ciclo === "anual" ? 12 : ciclo === "bienal" ? 24 : 1;
-        const cicloLabel = ciclo === "anual"
-            ? "Anual (12 meses)"
-            : ciclo === "bienal" ? "Bienal (24 meses)" : "Mensal (sem fidelidade)";
-
-        const totalContrato = (totalMensal * meses) + implementacaoTotal;
-
-        totaisEl.innerHTML = `
-            <div class="totals-row">
-                <span>Ciclo de contrato</span>
-                <span>${cicloLabel}</span>
-            </div>
-            <div class="totals-row">
-                <span>Taxa de implementação (única, por produto contratado)</span>
-                <span>${formatBRL(implementacaoTotal)}</span>
-            </div>
-            <div class="totals-row grand">
-                <span>Total mensal</span>
-                <span class="value">${formatBRL(totalMensal)}</span>
-            </div>
-            <div class="totals-row">
-                <span>Total do contrato (${meses} ${meses === 1 ? "mês" : "meses"} + implementação)</span>
-                <span><strong>${formatBRL(totalContrato)}</strong></span>
-            </div>
-        `;
     }
 
 
@@ -1427,7 +1609,7 @@ function gerarDiagnostico() {
     if (incluirConversas) {
         const conversasPorAtendente = atendentes > 0 ? Math.round(whatsapp / atendentes) : whatsapp;
         escopo += `
-        <div class="scope-item">
+        <div class="scope-item" data-produto="conversas">
             <strong>Atendimento e IA (RD Station Conversas)</strong>
             Estruturação de atendimento digital considerando aproximadamente
             ${whatsapp.toLocaleString("pt-BR")} conversas mensais e
@@ -1440,7 +1622,7 @@ function gerarDiagnostico() {
 
     if (incluirCRM) {
         escopo += `
-        <div class="scope-item">
+        <div class="scope-item" data-produto="crm">
             <strong>CRM e Gestão Comercial (RD Station CRM)</strong>
             Estruturação de CRM para ${vendedores} vendedores, considerando
             aproximadamente ${leads.toLocaleString("pt-BR")} leads e
@@ -1450,7 +1632,7 @@ function gerarDiagnostico() {
 
     if (incluirMarketing) {
         escopo += `
-        <div class="scope-item">
+        <div class="scope-item" data-produto="marketing">
             <strong>Marketing e Geração de Demanda (RD Station Marketing)</strong>
             Estruturação de jornadas de relacionamento, automações e campanhas
             considerando aproximadamente ${trafego.toLocaleString("pt-BR")} acessos
@@ -1480,6 +1662,8 @@ function gerarDiagnostico() {
         </div>`;
 
     document.getElementById("escopo").innerHTML = escopo;
+
+    atualizarProposta();
 
 
     /*
@@ -1522,6 +1706,7 @@ function limparFormulario() {
 
         });
 
+    propostaItens = [];
     document.getElementById("resultado").style.display = "none";
     window.scrollTo({ top: 0, behavior: "smooth" });
 
