@@ -851,8 +851,9 @@
             <div class="totals" id="propostaTotais"></div>
 
             <p class="disclaimer">
-                Plano, quantidade e valor de cada produto são sugeridos automaticamente
-                a partir dos dados informados. Estimativa sujeita à confirmação comercial.
+                Plano, quantidade e valor de cada produto são sugeridos automaticamente a
+                partir dos dados informados, com base na tabela oficial de planos e preços
+                RD Station 2026 (guias BRL). Estimativa sujeita à confirmação comercial.
             </p>
 
         </div>
@@ -927,41 +928,71 @@ function formatDataBR(date) {
 ==================================================
 MOTOR DE PRECIFICAÇÃO
 ==================================================
-Tabela de referência mantida fixa no código (não editável na tela) para
-que a calculadora sempre sugira sozinha o plano e a quantidade de cada
-produto a partir dos dados do cliente. Para atualizar valores comerciais,
-ajuste esta constante diretamente no arquivo.
+Valores extraídos das guias [BRL] da tabela oficial de planos e preços
+2026 da RD Station (revisão mais recente de cada produto: RDSM Entry
+Level 2026-2, RDSM Premium 2026-3, RDSCRM 2026, RDSC 2026, Módulo de
+implementação — Parceiros 2026-2). Mantidos fixos no código para que a
+calculadora sempre sugira sozinha o plano e a quantidade de cada
+produto a partir dos dados do cliente, sem exigir configuração manual.
+Para atualizar, ajuste esta constante conforme nova revisão da tabela.
 */
 
 const PRECOS = {
-    marketing: { light: 269, basic: 509, pro: 1109, enterprise: 2109 },
-    crm: { basic: 49, pro: 79, plus: 129 },
-    conversas: 179,
-    taxaImplementacao: 1500,
-    descontoPorCiclo: { mensal: 0, anual: 10, bienal: 18 }
+
+    // RD Station Marketing — Entry Level (Light/Basic), por leads/mês.
+    marketingEntry: {
+        light: [[1000,79],[2000,129],[3000,180],[4000,244],[5000,290],[6000,345],[7000,424],[8000,469],[9000,513],[10000,570],[15000,804],[20000,1017],[25000,1254],[30000,1368],[35000,1484],[40000,1588],[45000,1703],[50000,1818],[75000,3038],[100000,3844]],
+        basic: [[1000,309],[2000,349],[3000,399],[4000,459],[5000,559],[6000,659],[7000,779],[8000,833],[9000,878],[10000,976],[15000,1104],[20000,1311],[25000,1553],[30000,1772],[35000,1933],[40000,2094],[45000,2324],[50000,2520],[75000,3648],[100000,4385]]
+    },
+
+    // RD Station Marketing — Premium (Pro/Advanced), por leads/mês.
+    marketingPremium: {
+        pro: [[3000,649],[5000,1121],[10000,1412],[25000,1970],[50000,2775],[75000,3943],[100000,4868],[125000,5672],[150000,6553],[175000,7569],[200000,8547],[225000,9375],[250000,10265],[275000,10801],[300000,11697],[325000,12392],[350000,13282],[375000,14160],[400000,14694],[425000,15228],[450000,15776],[475000,16285],[500000,17697]],
+        advanced: [[5000,1699],[10000,2699],[25000,4069],[50000,4969],[75000,6237],[100000,7292],[125000,8470],[150000,9312],[175000,10086],[200000,10591],[225000,11534],[250000,12307],[275000,13025],[300000,13709],[325000,14738],[350000,15423],[375000,16622],[400000,17652],[425000,18509],[450000,19536],[475000,20394],[500000,21250]]
+    },
+
+    // RD Station CRM — linear por usuário/mês (Advanced exige mínimo de 4 usuários).
+    crm: { basic: 73, pro: 131, advanced: 268 },
+
+    // RD Station Conversas — por clientes atendidos/mês.
+    conversas: {
+        basic: [[500,1099],[750,1299],[1000,1499]],
+        pro: 2999,
+        // Advanced: curva por faixa (exata nos breakpoints da tabela oficial).
+        advancedAte20k: (v) => 5349 + 0.85 * (v - 5000),
+        advancedAcima20k: (v) => 18099 + 0.42 * (v - 20000)
+    },
+
+    // Módulo de implementação (Parceiros), por produto contratado.
+    implementacao: { marketing: 1319, crm: 1319, conversas: 1319 }
 };
 
-// Estima o tamanho da base de contatos ativos a partir dos leads/mês
-// informados (acúmulo aproximado de 12 meses de geração de leads).
-function estimarContatosAtivos(leadsPorMes) {
-    return Math.round(Math.max(leadsPorMes, 1) * 12);
+// Procura a menor faixa de volume >= valor informado (planos são vendidos
+// em degraus fixos). Acima da última faixa, mantém o preço-teto e sinaliza.
+function precoPorFaixa(volume, tabela) {
+    for (const [limite, preco] of tabela) {
+        if (volume <= limite) return { preco, excedeu: false };
+    }
+    return { preco: tabela[tabela.length - 1][1], excedeu: true };
 }
 
-function planoMarketing(contatosAtivos) {
+function planoMarketing(leads, possuiAutomacao, campanhas) {
 
-    if (contatosAtivos <= 3000) {
-        return { nome: "RD Station Marketing — Light", preco: PRECOS.marketing.light };
+    // Sinais de automação/campanhas já coletados decidem a família de plano;
+    // o volume de leads decide o degrau dentro da família.
+    const premium = possuiAutomacao || campanhas > 8;
+
+    if (!premium) {
+        const tier = leads <= 1000 ? "light" : "basic";
+        const tabela = PRECOS.marketingEntry[tier];
+        const { preco, excedeu } = precoPorFaixa(leads, tabela);
+        return { nome: "RD Station Marketing — " + (tier === "light" ? "Light" : "Basic"), preco, excedeu };
     }
 
-    if (contatosAtivos <= 10000) {
-        return { nome: "RD Station Marketing — Basic", preco: PRECOS.marketing.basic };
-    }
-
-    if (contatosAtivos <= 30000) {
-        return { nome: "RD Station Marketing — Pro", preco: PRECOS.marketing.pro };
-    }
-
-    return { nome: "RD Station Marketing — Enterprise", preco: PRECOS.marketing.enterprise };
+    const tier = leads <= 25000 ? "pro" : "advanced";
+    const tabela = PRECOS.marketingPremium[tier];
+    const { preco, excedeu } = precoPorFaixa(leads, tabela);
+    return { nome: "RD Station Marketing — " + (tier === "pro" ? "Pro" : "Advanced"), preco, excedeu };
 }
 
 function planoCRM(vendedores) {
@@ -972,8 +1003,8 @@ function planoCRM(vendedores) {
     let precoUnitario = PRECOS.crm.basic;
 
     if (usuarios > 10) {
-        nome = "RD Station CRM — Plus";
-        precoUnitario = PRECOS.crm.plus;
+        nome = "RD Station CRM — Advanced";
+        precoUnitario = PRECOS.crm.advanced;
     } else if (usuarios > 3) {
         nome = "RD Station CRM — Pro";
         precoUnitario = PRECOS.crm.pro;
@@ -982,20 +1013,32 @@ function planoCRM(vendedores) {
     return {
         nome: nome,
         usuarios: usuarios,
-        preco: precoUnitario * usuarios
+        preco: Math.round(precoUnitario * usuarios)
     };
 }
 
-function planoConversas(atendentes, whatsapp) {
+function planoConversas(clientesAtendidos) {
 
-    const seats = Math.max(atendentes, 1);
-    const nivel = whatsapp > 3000 ? "Pro" : "Starter";
+    const v = Math.max(clientesAtendidos, 1);
 
-    return {
-        nome: "RD Station Conversas — " + nivel,
-        atendentes: seats,
-        preco: PRECOS.conversas * seats
-    };
+    if (v <= 1000) {
+        const { preco } = precoPorFaixa(v, PRECOS.conversas.basic);
+        return { nome: "RD Station Conversas — Basic", volume: v, preco, excedeu: false };
+    }
+
+    if (v <= 4999) {
+        return { nome: "RD Station Conversas — Pro", volume: v, preco: PRECOS.conversas.pro, excedeu: false };
+    }
+
+    if (v <= 20000) {
+        return { nome: "RD Station Conversas — Advanced", volume: v, preco: Math.round(PRECOS.conversas.advancedAte20k(v)), excedeu: false };
+    }
+
+    if (v <= 100000) {
+        return { nome: "RD Station Conversas — Advanced", volume: v, preco: Math.round(PRECOS.conversas.advancedAcima20k(v)), excedeu: false };
+    }
+
+    return { nome: "RD Station Conversas — Advanced", volume: v, preco: Math.round(PRECOS.conversas.advancedAcima20k(100000)), excedeu: true };
 }
 
 
@@ -1010,7 +1053,6 @@ function gerarDiagnostico() {
     const anuncios = valor("anuncios");
     const midia = valor("midia");
     const leads = valor("leads");
-    const contatosAtivos = estimarContatosAtivos(leads);
     const campanhas = valor("campanhas");
     const whatsapp = valor("whatsapp");
     const atendentes = valor("atendentes");
@@ -1272,20 +1314,23 @@ function gerarDiagnostico() {
     const incluirConversas = whatsapp > 3000 || !possuiIA;
 
     const itensProposta = [];
+    let implementacaoTotal = 0;
 
     if (incluirMarketing) {
-        const plano = planoMarketing(contatosAtivos);
+        const plano = planoMarketing(leads, possuiAutomacao, campanhas);
+        implementacaoTotal += PRECOS.implementacao.marketing;
         itensProposta.push({
             tag: "MARKETING",
             nome: plano.nome,
-            base: "~" + contatosAtivos.toLocaleString("pt-BR") + " contatos ativos estimados (" +
-                leads.toLocaleString("pt-BR") + " leads/mês × 12 meses)",
+            base: leads.toLocaleString("pt-BR") + " leads/mês" +
+                (plano.excedeu ? " (acima da tabela padrão — sob consulta)" : ""),
             preco: plano.preco
         });
     }
 
     if (incluirCRM) {
         const plano = planoCRM(vendedores);
+        implementacaoTotal += PRECOS.implementacao.crm;
         itensProposta.push({
             tag: "VENDAS",
             nome: plano.nome,
@@ -1295,11 +1340,13 @@ function gerarDiagnostico() {
     }
 
     if (incluirConversas) {
-        const plano = planoConversas(atendentes, whatsapp);
+        const plano = planoConversas(whatsapp);
+        implementacaoTotal += PRECOS.implementacao.conversas;
         itensProposta.push({
             tag: "ATENDIMENTO",
             nome: plano.nome,
-            base: plano.atendentes + " atendente(s) — " + whatsapp.toLocaleString("pt-BR") + " conversas/mês",
+            base: whatsapp.toLocaleString("pt-BR") + " conversas/mês (clientes atendidos)" +
+                (plano.excedeu ? " (acima da tabela padrão — sob consulta)" : ""),
             preco: plano.preco
         });
     }
@@ -1329,30 +1376,23 @@ function gerarDiagnostico() {
             </tr>
         `).join("");
 
-        const subtotal = itensProposta.reduce((soma, item) => soma + item.preco, 0);
+        const totalMensal = itensProposta.reduce((soma, item) => soma + item.preco, 0);
 
         const meses = ciclo === "anual" ? 12 : ciclo === "bienal" ? 24 : 1;
         const cicloLabel = ciclo === "anual"
             ? "Anual (12 meses)"
             : ciclo === "bienal" ? "Bienal (24 meses)" : "Mensal (sem fidelidade)";
-        const percentualDesconto = PRECOS.descontoPorCiclo[ciclo] || 0;
 
-        const valorDesconto = subtotal * (percentualDesconto / 100);
-        const totalMensal = subtotal - valorDesconto;
-        const totalContrato = (totalMensal * meses) + PRECOS.taxaImplementacao;
+        const totalContrato = (totalMensal * meses) + implementacaoTotal;
 
         totaisEl.innerHTML = `
             <div class="totals-row">
-                <span>Subtotal mensal</span>
-                <span>${formatBRL(subtotal)}</span>
+                <span>Ciclo de contrato</span>
+                <span>${cicloLabel}</span>
             </div>
             <div class="totals-row">
-                <span>Desconto (${cicloLabel} — ${percentualDesconto.toFixed(1)}%)</span>
-                <span>- ${formatBRL(valorDesconto)}</span>
-            </div>
-            <div class="totals-row">
-                <span>Taxa de implementação (única)</span>
-                <span>${formatBRL(PRECOS.taxaImplementacao)}</span>
+                <span>Taxa de implementação (única, por produto contratado)</span>
+                <span>${formatBRL(implementacaoTotal)}</span>
             </div>
             <div class="totals-row grand">
                 <span>Total mensal</span>
@@ -1404,8 +1444,7 @@ function gerarDiagnostico() {
             <strong>Marketing e Geração de Demanda (RD Station Marketing)</strong>
             Estruturação de jornadas de relacionamento, automações e campanhas
             considerando aproximadamente ${trafego.toLocaleString("pt-BR")} acessos
-            mensais e uma base estimada de ${contatosAtivos.toLocaleString("pt-BR")}
-            contatos ativos.
+            mensais e ${leads.toLocaleString("pt-BR")} leads gerados por mês.
         </div>`;
     }
 
