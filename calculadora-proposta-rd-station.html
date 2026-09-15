@@ -1082,6 +1082,25 @@ function precoPorFaixa(volume, tabela) {
     return { preco: tabela[tabela.length - 1][1], excedeu: true };
 }
 
+// RD Station Marketing só vende em faixas fechadas de contatos — não existe
+// preço fracionado. Quando a base calculada cai entre duas faixas da guia,
+// aproxima para a faixa mais próxima (para cima OU para baixo, o que for
+// mais perto), em vez de sempre arredondar para a faixa seguinte.
+function precoPorFaixaProxima(volume, tabela) {
+    let faixa = tabela[0];
+    let menorDistancia = Math.abs(volume - faixa[0]);
+
+    for (const par of tabela) {
+        const distancia = Math.abs(volume - par[0]);
+        if (distancia < menorDistancia) {
+            faixa = par;
+            menorDistancia = distancia;
+        }
+    }
+
+    return { preco: faixa[1], faixa: faixa[0], excedeu: volume > tabela[tabela.length - 1][0] };
+}
+
 // Base de contatos a ser trabalhada: leads captados no mês projetados para
 // 12 meses, acrescidos de 30% de gordura para cobrir a base de clientes/leads
 // já existente (não apenas os novos leads mensais).
@@ -1100,14 +1119,14 @@ function planoMarketing(leadsPorMes, possuiAutomacao, campanhas) {
     if (!premium) {
         const tier = base <= 1000 ? "light" : "basic";
         const tabela = PRECOS.marketingEntry[tier];
-        const { preco, excedeu } = precoPorFaixa(base, tabela);
-        return { nome: "RD Station Marketing — " + (tier === "light" ? "Light" : "Basic"), base, preco, excedeu };
+        const { preco, faixa, excedeu } = precoPorFaixaProxima(base, tabela);
+        return { nome: "RD Station Marketing — " + (tier === "light" ? "Light" : "Basic"), base, faixa, preco, excedeu };
     }
 
     const tier = base <= 25000 ? "pro" : "advanced";
     const tabela = PRECOS.marketingPremium[tier];
-    const { preco, excedeu } = precoPorFaixa(base, tabela);
-    return { nome: "RD Station Marketing — " + (tier === "pro" ? "Pro" : "Advanced"), base, preco, excedeu };
+    const { preco, faixa, excedeu } = precoPorFaixaProxima(base, tabela);
+    return { nome: "RD Station Marketing — " + (tier === "pro" ? "Pro" : "Advanced"), base, faixa, preco, excedeu };
 }
 
 function planoCRM(vendedores) {
@@ -1537,8 +1556,9 @@ function gerarDiagnostico() {
             tag: "MARKETING",
             nome: plano.nome,
             base: "~" + plano.base.toLocaleString("pt-BR") + " contatos/ano (" +
-                leads.toLocaleString("pt-BR") + " leads/mês × 12 + 30% de gordura)" +
-                (plano.excedeu ? " — acima da tabela padrão, sob consulta" : ""),
+                leads.toLocaleString("pt-BR") + " leads/mês × 12 + 30% de gordura) " +
+                "— faixa da tabela: " + plano.faixa.toLocaleString("pt-BR") + " contatos" +
+                (plano.excedeu ? " (acima do teto da tabela, sob consulta)" : ""),
             preco: plano.preco
         });
     }
