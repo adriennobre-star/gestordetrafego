@@ -6,6 +6,49 @@
 <title>RD Station | Calculadora de Proposta</title>
 
 <style>
+    :root {
+        --bg: #f1f5f9;
+        --surface: #ffffff;
+        --surface-alt: #f8fafc;
+        --text: #0b1d2c;
+        --text-muted: #64748b;
+        --text-faint: #94a3b8;
+        --border: #e2e8f0;
+        --border-soft: #eef1f5;
+        --accent: #0ea5e9;
+        --accent-strong: #0369a1;
+        --accent-soft-bg: #e0f2fe;
+        --on-accent: #ffffff;
+        --btn-secondary-bg: #e5e7eb;
+        --btn-secondary-bg-hover: #d1d5db;
+        --btn-secondary-text: #111827;
+        --shadow: 0 4px 18px rgba(11,29,44,0.07);
+        --header-grad: linear-gradient(120deg, #04111c 0%, #0a2c42 55%, #146287 100%);
+        --brand-dark: #08202f;
+        --brand-dark-border: #163a50;
+    }
+
+    :root[data-theme="dark"] {
+        --bg: #06111c;
+        --surface: #0e2032;
+        --surface-alt: #132738;
+        --text: #e7eef5;
+        --text-muted: #93a6b8;
+        --text-faint: #6c8299;
+        --border: #1e3547;
+        --border-soft: #1a2e3e;
+        --accent: #38bdf8;
+        --accent-strong: #7dd3fc;
+        --accent-soft-bg: rgba(56,189,248,.16);
+        --on-accent: #04121d;
+        --btn-secondary-bg: #16293a;
+        --btn-secondary-bg-hover: #1e3547;
+        --btn-secondary-text: #e7eef5;
+        --shadow: 0 4px 18px rgba(0,0,0,0.35);
+        --brand-dark: #06131e;
+        --brand-dark-border: #1c3448;
+    }
+
     * {
         box-sizing: border-box;
         margin: 0;
@@ -14,33 +57,84 @@
 
     body {
         font-family: 'Segoe UI', Arial, Helvetica, sans-serif;
-        background: #f4f6f8;
-        color: #1a1a2e;
+        background: var(--bg);
+        color: var(--text);
+        transition: background .2s ease, color .2s ease;
     }
 
     header {
-        background: linear-gradient(120deg, #1a0b3d 0%, #3b0e8f 55%, #4b0fd6 100%);
+        background: var(--header-grad);
         color: white;
-        padding: 28px 40px;
+        padding: 22px 40px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+
+    .brand-block {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .brand-mark {
+        flex-shrink: 0;
     }
 
     .brand {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        font-size: 26px;
-        font-weight: 800;
-        letter-spacing: -.5px;
+        font-size: 25px;
+        letter-spacing: -.4px;
+        line-height: 1.1;
     }
 
     .brand .rd {
-        color: #ccff00;
+        font-weight: 800;
+    }
+
+    .brand .station {
+        font-weight: 400;
     }
 
     header p {
-        color: #d8cff5;
-        font-size: 14px;
-        margin-top: 6px;
+        color: #b9d3e2;
+        font-size: 13px;
+        margin-top: 4px;
+    }
+
+    .theme-toggle {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(255,255,255,.08);
+        border: 1px solid rgba(255,255,255,.25);
+        border-radius: 30px;
+        padding: 7px 14px 7px 10px;
+        color: white;
+        font-size: 12.5px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .theme-toggle:hover {
+        background: rgba(255,255,255,.16);
+    }
+
+    .theme-toggle svg {
+        display: block;
+    }
+
+    .theme-toggle .icon-moon {
+        display: none;
+    }
+
+    :root[data-theme="dark"] .theme-toggle .icon-sun {
+        display: none;
+    }
+
+    :root[data-theme="dark"] .theme-toggle .icon-moon {
+        display: block;
     }
 
     .container {
@@ -50,23 +144,25 @@
     }
 
     .card {
-        background: white;
+        background: var(--surface);
+        border: 1px solid var(--border-soft);
         border-radius: 14px;
         padding: 25px;
         margin-bottom: 20px;
-        box-shadow: 0 4px 18px rgba(0,0,0,0.06);
+        box-shadow: var(--shadow);
     }
 
     .card h2 {
         font-size: 20px;
         margin-bottom: 20px;
+        color: var(--text);
     }
 
     .card h2 small {
         display: block;
         font-size: 12px;
         font-weight: normal;
-        color: #64748b;
+        color: var(--text-muted);
         margin-top: 4px;
     }
 
@@ -74,7 +170,7 @@
         font-size: 14px;
         font-weight: bold;
         text-transform: uppercase;
-        color: #64748b;
+        color: var(--text-muted);
         margin: 25px 0 15px;
         letter-spacing: .5px;
         display: flex;
@@ -89,7 +185,7 @@
     .section-hint {
         font-weight: normal;
         text-transform: none;
-        color: #94a3b8;
+        color: var(--text-faint);
         font-size: 12px;
         letter-spacing: normal;
     }
@@ -109,34 +205,35 @@
         font-size: 13px;
         font-weight: bold;
         margin-bottom: 7px;
-        color: #374151;
+        color: var(--text);
     }
 
     label .opt {
         font-weight: normal;
-        color: #94a3b8;
+        color: var(--text-faint);
         font-size: 11px;
     }
 
     input,
     select {
         height: 43px;
-        border: 1px solid #d1d5db;
+        border: 1px solid var(--border);
         border-radius: 8px;
         padding: 0 12px;
         font-size: 14px;
         outline: none;
-        background: white;
+        background: var(--surface);
+        color: var(--text);
     }
 
     input:focus,
     select:focus {
-        border-color: #6d28d9;
+        border-color: var(--accent);
     }
 
     .disclaimer {
         font-size: 12px;
-        color: #94a3b8;
+        color: var(--text-faint);
         margin-top: 10px;
         line-height: 1.5;
     }
@@ -155,24 +252,34 @@
         font-size: 14px;
         font-weight: bold;
         cursor: pointer;
+        font-family: inherit;
     }
 
     .primary {
-        background: #4b0fd6;
-        color: white;
+        background: var(--accent);
+        color: var(--on-accent);
     }
 
     .primary:hover {
-        background: #3b0e8f;
+        background: var(--accent-strong);
     }
 
     .secondary {
-        background: #e5e7eb;
-        color: #111827;
+        background: var(--btn-secondary-bg);
+        color: var(--btn-secondary-text);
     }
 
     .secondary:hover {
-        background: #d1d5db;
+        background: var(--btn-secondary-bg-hover);
+    }
+
+    .whatsapp {
+        background: #25d366;
+        color: #04120a;
+    }
+
+    .whatsapp:hover {
+        background: #1fb958;
     }
 
     #resultado {
@@ -185,14 +292,14 @@
         flex-wrap: wrap;
         gap: 10px;
         font-size: 13px;
-        color: #64748b;
+        color: var(--text-muted);
         margin-bottom: 18px;
-        border-bottom: 1px solid #e5e7eb;
+        border-bottom: 1px solid var(--border-soft);
         padding-bottom: 14px;
     }
 
     .proposal-meta strong {
-        color: #1a1a2e;
+        color: var(--text);
     }
 
     .score {
@@ -206,18 +313,18 @@
     .score-number {
         font-size: 58px;
         font-weight: bold;
-        color: #4b0fd6;
+        color: var(--accent);
     }
 
     .score-label {
         font-size: 15px;
-        color: #64748b;
+        color: var(--text-muted);
     }
 
     .progress {
         height: 14px;
         width: 100%;
-        background: #e5e7eb;
+        background: var(--border);
         border-radius: 20px;
         overflow: hidden;
         margin-top: 12px;
@@ -226,7 +333,7 @@
     .progress-bar {
         height: 100%;
         width: 0%;
-        background: linear-gradient(90deg, #4b0fd6, #ccff00);
+        background: linear-gradient(90deg, var(--accent-strong), var(--accent));
         transition: width .5s ease;
     }
 
@@ -238,28 +345,28 @@
     }
 
     .metric {
-        background: #f8fafc;
+        background: var(--surface-alt);
         border-radius: 10px;
         padding: 18px;
         text-align: center;
-        border: 1px solid #e5e7eb;
+        border: 1px solid var(--border-soft);
     }
 
     .metric-value {
         font-size: 27px;
         font-weight: bold;
         margin-bottom: 6px;
-        color: #4b0fd6;
+        color: var(--accent);
     }
 
     .metric-name {
         font-size: 12px;
-        color: #64748b;
+        color: var(--text-muted);
     }
 
     .diagnostic {
-        border-left: 5px solid #4b0fd6;
-        background: #f8fafc;
+        border-left: 5px solid var(--accent);
+        background: var(--surface-alt);
         padding: 18px;
         border-radius: 8px;
         margin-bottom: 12px;
@@ -268,12 +375,13 @@
     .diagnostic h3 {
         font-size: 16px;
         margin-bottom: 7px;
+        color: var(--text);
     }
 
     .diagnostic p {
         font-size: 14px;
         line-height: 1.5;
-        color: #475569;
+        color: var(--text-muted);
     }
 
     .summary {
@@ -284,8 +392,8 @@
     }
 
     .summary-box {
-        background: #f8fafc;
-        border: 1px solid #e5e7eb;
+        background: var(--surface-alt);
+        border: 1px solid var(--border-soft);
         border-radius: 10px;
         padding: 15px;
     }
@@ -293,12 +401,13 @@
     .summary-box span {
         display: block;
         font-size: 11px;
-        color: #64748b;
+        color: var(--text-muted);
         margin-bottom: 5px;
     }
 
     .summary-box strong {
         font-size: 19px;
+        color: var(--text);
     }
 
     /* PROPOSTA COMERCIAL */
@@ -315,15 +424,16 @@
         font-size: 11px;
         text-transform: uppercase;
         letter-spacing: .4px;
-        color: #64748b;
+        color: var(--text-muted);
         padding: 10px 12px;
-        border-bottom: 2px solid #e5e7eb;
+        border-bottom: 2px solid var(--border-soft);
     }
 
     table.proposal-table td {
         padding: 14px 12px;
-        border-bottom: 1px solid #eef0f4;
+        border-bottom: 1px solid var(--border-soft);
         vertical-align: top;
+        color: var(--text);
     }
 
     table.proposal-table td.value {
@@ -357,24 +467,25 @@
         border-radius: 20px;
         font-size: 11px;
         font-weight: bold;
-        background: #ede9fe;
-        color: #4b0fd6;
+        background: var(--accent-soft-bg);
+        color: var(--accent-strong);
     }
 
     .product-name {
         font-weight: bold;
         font-size: 14.5px;
         margin-bottom: 4px;
+        color: var(--text);
     }
 
     .product-basis {
         font-size: 12px;
-        color: #64748b;
+        color: var(--text-muted);
     }
 
     .totals {
         margin-top: 18px;
-        border-top: 2px solid #1a1a2e;
+        border-top: 2px solid var(--text);
         padding-top: 15px;
     }
 
@@ -383,30 +494,31 @@
         justify-content: space-between;
         padding: 6px 12px;
         font-size: 14px;
-        color: #475569;
+        color: var(--text-muted);
     }
 
     .totals-row.grand {
         font-size: 20px;
         font-weight: bold;
-        color: #1a1a2e;
-        border-top: 1px solid #e5e7eb;
+        color: var(--text);
+        border-top: 1px solid var(--border-soft);
         margin-top: 8px;
         padding-top: 14px;
     }
 
     .totals-row.grand span.value {
-        color: #4b0fd6;
+        color: var(--accent);
     }
 
     .empty-note {
         font-size: 14px;
-        color: #64748b;
+        color: var(--text-muted);
         padding: 10px 0;
     }
 
     .scope-box {
-        background: #1a0b3d;
+        background: var(--brand-dark);
+        border: 1px solid var(--brand-dark-border);
         color: white;
         border-radius: 12px;
         padding: 25px;
@@ -418,7 +530,7 @@
 
     .scope-item {
         padding: 13px 0;
-        border-bottom: 1px solid #3b2a70;
+        border-bottom: 1px solid var(--brand-dark-border);
         font-size: 14px;
     }
 
@@ -429,7 +541,7 @@
     .scope-item strong {
         display: block;
         margin-bottom: 4px;
-        color: #ccff00;
+        color: var(--accent-strong);
     }
 
     .hidden {
@@ -454,7 +566,7 @@
     @media(max-width: 600px) {
 
         header {
-            padding: 20px;
+            padding: 18px 20px;
         }
 
         .grid {
@@ -476,8 +588,19 @@
 
     @media print {
 
-        body {
-            background: white;
+        :root, :root[data-theme="dark"] {
+            --bg: #ffffff;
+            --surface: #ffffff;
+            --surface-alt: #f8fafc;
+            --text: #0b1d2c;
+            --text-muted: #555555;
+            --text-faint: #777777;
+            --border: #dddddd;
+            --border-soft: #dddddd;
+            --accent: #0a2c42;
+            --accent-strong: #0a2c42;
+            --accent-soft-bg: #e6edf2;
+            --on-accent: #ffffff;
         }
 
         header {
@@ -490,8 +613,12 @@
             color: #555;
         }
 
-        .brand .rd {
-            color: #4b0fd6;
+        .brand, .brand .rd, .brand .station {
+            color: #0a2c42;
+        }
+
+        .theme-toggle {
+            display: none;
         }
 
         #formulario,
@@ -532,7 +659,7 @@
         }
 
         .scope-item strong {
-            color: #4b0fd6;
+            color: #0a2c42;
         }
     }
 </style>
@@ -541,8 +668,35 @@
 <body>
 
 <header>
-    <div class="brand"><span class="rd">RD</span> Station</div>
-    <p>Calculadora de Diagnóstico e Proposta Comercial</p>
+
+    <div class="brand-block">
+
+        <svg class="brand-mark" width="34" height="34" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M17 2 L30 9.5 V24.5 L17 32 L4 24.5 V9.5 Z" stroke="white" stroke-width="3.2" stroke-linejoin="round"/>
+        </svg>
+
+        <div>
+            <div class="brand"><span class="rd">RD</span> <span class="station">Station</span></div>
+            <p>Calculadora de Diagnóstico e Proposta Comercial</p>
+        </div>
+
+    </div>
+
+    <button class="theme-toggle" onclick="alternarTema()" aria-label="Alternar tema claro/escuro" title="Alternar tema claro/escuro">
+
+        <svg class="icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="4"/>
+            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+        </svg>
+
+        <svg class="icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/>
+        </svg>
+
+        <span id="themeToggleLabel">Modo escuro</span>
+
+    </button>
+
 </header>
 
 
@@ -957,8 +1111,15 @@
 
             <div class="button-area">
                 <button class="primary" onclick="window.print()">IMPRIMIR / SALVAR PDF</button>
+                <button class="whatsapp" onclick="enviarWhatsApp()">ENVIAR RESUMO POR WHATSAPP</button>
                 <button class="secondary" onclick="voltarFormulario()">EDITAR DIAGNÓSTICO</button>
             </div>
+
+            <p class="disclaimer">
+                O WhatsApp abre para você escolher o contato/conversa. Como o link não permite
+                anexar arquivo, a mensagem leva o resumo completo da proposta em texto — para
+                enviar o PDF, gere-o em "Imprimir / Salvar PDF" e anexe-o à conversa.
+            </p>
 
         </div>
 
@@ -997,12 +1158,50 @@ function formatDataBR(date) {
 // o diagnóstico de novo.
 let propostaItens = [];
 
+// Último resumo calculado por atualizarProposta(), reaproveitado no envio
+// por WhatsApp para não duplicar a lógica de totais.
+let ultimoResumoProposta = null;
+
 // Preenche a validade padrão (hoje + 7 dias) ao carregar a página.
 (function definirValidadePadrao() {
     const campo = document.getElementById("validade");
     const data = new Date();
     data.setDate(data.getDate() + 7);
     campo.value = data.toISOString().slice(0, 10);
+})();
+
+
+/*
+==================================================
+TEMA CLARO / ESCURO
+==================================================
+*/
+
+function aplicarTema(tema) {
+    document.documentElement.setAttribute("data-theme", tema);
+    const label = document.getElementById("themeToggleLabel");
+    if (label) label.textContent = tema === "dark" ? "Modo claro" : "Modo escuro";
+    try {
+        localStorage.setItem("rdCalcTema", tema);
+    } catch (e) {
+        // localStorage indisponível (ex.: navegação privada) — segue sem persistir.
+    }
+}
+
+function alternarTema() {
+    const atual = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+    aplicarTema(atual === "dark" ? "light" : "dark");
+}
+
+(function iniciarTema() {
+    let salvo = null;
+    try {
+        salvo = localStorage.getItem("rdCalcTema");
+    } catch (e) {
+        // segue sem preferência salva
+    }
+    const preferido = salvo || (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    aplicarTema(preferido);
 })();
 
 
@@ -1275,6 +1474,67 @@ function atualizarProposta() {
         ? "Selecione ao menos um produto na proposta acima para calcular a implantação."
         : "Valores de implantação conforme a guia Serviços da tabela oficial RD Station 2026 " +
           "(revisão BRL 2026-2). Parcelamento sem juros — condições finais sujeitas à confirmação comercial.";
+
+    // Guarda o resumo calculado para reaproveitar no envio por WhatsApp.
+    ultimoResumoProposta = { incluidos, cicloLabel, subtotalMensal, tipo, parcelas, implantacaoTotal, valorParcela, totalContrato, meses };
+}
+
+
+/*
+==================================================
+ENVIO POR WHATSAPP
+==================================================
+O link wa.me só aceita texto (não é possível anexar o PDF gerado no
+navegador via link). Por isso monta um resumo completo da proposta como
+mensagem e abre o WhatsApp sem destinatário fixo, para que o usuário
+escolha o contato/conversa para quem vai enviar — o PDF (gerado pelo
+botão "Imprimir / Salvar PDF") pode ser anexado à mão na conversa.
+*/
+
+const TIPO_IMPLANTACAO_LABEL = {
+    modulo: "Módulo de implementação",
+    parceiroAtivo: "Onboarding Parceiros Ativos",
+    vendasDiretas: "Onboarding Vendas Diretas",
+    fullService: "Onboarding Full Service",
+    duo: "Onboarding Multiproduto Duo",
+    trio: "Onboarding Multiproduto Trio"
+};
+
+function enviarWhatsApp() {
+
+    if (!ultimoResumoProposta || ultimoResumoProposta.incluidos.length === 0) {
+        alert("Gere a proposta e selecione ao menos um produto antes de enviar por WhatsApp.");
+        return;
+    }
+
+    const r = ultimoResumoProposta;
+
+    const linhas = [
+        "*Proposta RD Station — " + document.getElementById("metaEmpresa").textContent + "*",
+        "Proposta nº: " + document.getElementById("propostaId").textContent,
+        "Consultor: " + document.getElementById("metaConsultor").textContent,
+        "Válida até: " + document.getElementById("metaValidade").textContent,
+        "",
+        "*Maturidade digital:* " + document.getElementById("score").textContent + "/100 — " + document.getElementById("nivel").textContent,
+        "",
+        "*Soluções propostas:*"
+    ];
+
+    r.incluidos.forEach(item => {
+        linhas.push("• " + item.nome + " — " + formatBRL(item.preco) + "/mês");
+    });
+
+    linhas.push("");
+    linhas.push("*Ciclo de contrato:* " + r.cicloLabel);
+    linhas.push("*Total mensal:* " + formatBRL(r.subtotalMensal));
+    linhas.push("*Implantação (" + TIPO_IMPLANTACAO_LABEL[r.tipo] + "):* " +
+        formatBRL(r.implantacaoTotal) + " em " + r.parcelas + "x de " + formatBRL(r.valorParcela));
+    linhas.push("*Total do contrato (" + r.meses + (r.meses === 1 ? " mês" : " meses") + " + implantação):* " + formatBRL(r.totalContrato));
+    linhas.push("");
+    linhas.push("Estimativa sujeita à confirmação comercial.");
+
+    const url = "https://wa.me/?text=" + encodeURIComponent(linhas.join("\n"));
+    window.open(url, "_blank");
 }
 
 
